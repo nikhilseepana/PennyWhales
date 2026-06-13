@@ -1,0 +1,250 @@
+import axios from 'axios';
+import { ScanResult, ScanStatus } from './types';
+
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:9001';
+
+export interface IndiaStocksResponse {
+  success: boolean;
+  symbols: string[];
+  count: number;
+  sourceUrl: string;
+  scrapedAt: string;
+  additions?: string[];
+  additionsCount?: number;
+  scrapeMode?: string;
+  warning?: string;
+  error?: string;
+}
+
+export const api = {
+  // Start a new scan
+  startScan: async (isMini: boolean = false): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.post(`${API_BASE}/api/scan/start`, { isMini });
+    return response.data;
+  },
+
+  // Scan multiple stocks
+  scanMultipleStocks: async (tickers: string[]): Promise<{ success: boolean; stocks?: any[]; count?: number; errors?: any[]; error?: string }> => {
+    const response = await axios.post(`${API_BASE}/api/scan`, { tickers });
+    return response.data;
+  },
+
+  // Get current scan status
+  getScanStatus: async (): Promise<ScanStatus> => {
+    const response = await axios.get(`${API_BASE}/api/scan/status`);
+    return response.data;
+  },
+
+  // India Stocks (Chartink)
+  getIndiaStocks: async (refresh: boolean = false): Promise<IndiaStocksResponse> => {
+    const response = await axios.get(`${API_BASE}/api/india-stocks`, {
+      params: refresh ? { refresh: 1 } : undefined,
+    });
+    return response.data;
+  },
+
+  // Get latest scan results
+  getLatestResults: async (
+    page: number = 1,
+    limit: number = 50,
+    searchQuery: string = '',
+    fireLevels: number[] = [],
+    priceFilters: string[] = [],
+    marketValueFilters: string[] = [],
+    sectors: string[] = [],
+    industries: string[] = [],
+    volumeFilter: string[] = [],
+    sortOrder: string[] = []
+  ): Promise<ScanResult | null> => {
+    const params: any = { page, limit };
+    if (searchQuery) params.searchQuery = searchQuery;
+    if (fireLevels.length > 0) params.fireLevels = fireLevels.join(',');
+    if (priceFilters.length > 0) params.priceFilters = priceFilters.join(',');
+    if (marketValueFilters.length > 0) params.marketValueFilters = marketValueFilters.join(',');
+    if (sectors.length > 0) params.sectors = sectors.join(',');
+    if (industries.length > 0) params.industries = industries.join(',');
+    if (volumeFilter.length > 0) params.volumeFilter = volumeFilter.join(',');
+    if (sortOrder.length > 0) params.sortOrder = sortOrder.join(',');
+    const response = await axios.get(`${API_BASE}/api/scan/results`, { params });
+    return response.data;
+  },
+
+
+  // Ticker Management
+  getTickers: async (): Promise<{ tickers: string[]; count: number }> => {
+    const response = await axios.get(`${API_BASE}/api/tickers`);
+    return response.data;
+  },
+
+  addTicker: async (ticker: string): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.post(`${API_BASE}/api/tickers`, { ticker });
+    return response.data;
+  },
+
+  addTickers: async (tickers: string[]): Promise<{ success: boolean; added: number; tickers: string[] }> => {
+    const response = await axios.post(`${API_BASE}/api/tickers`, { tickers });
+    return response.data;
+  },
+
+  addNewTickers: async (tickers: string[]): Promise<{ success: boolean; added: number; tickers: string[]; message: string }> => {
+    const response = await axios.patch(`${API_BASE}/api/tickers`, { tickers });
+    return response.data;
+  },
+
+  // AI Analysis
+  analyzeStock: async (ticker: string): Promise<{ ticker: string; analysis: string; description?: string; responseTime: string; tokensUsed: any; timestamp: string }> => {
+    const response = await axios.post(`${API_BASE}/api/analyze/${ticker}`);
+    return response.data;
+  },
+
+  updateTickers: async (tickers: string[]): Promise<{ success: boolean; tickers: string[]; count: number }> => {
+    const response = await axios.put(`${API_BASE}/api/tickers`, { tickers });
+    return response.data;
+  },
+
+  removeTicker: async (ticker: string): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.delete(`${API_BASE}/api/tickers/${ticker}`);
+    return response.data;
+  },
+
+  getStats: async (): Promise<{ totalTickers: number; lastScan: string | null; qualifyingStocks: number }> => {
+    const response = await axios.get(`${API_BASE}/api/stats`);
+    return response.data;
+  },
+
+  // Holdings Management
+  getHoldings: async (): Promise<{ holdings: string[]; count: number }> => {
+    const response = await axios.get(`${API_BASE}/api/holdings`);
+    return response.data;
+  },
+
+  addHolding: async (ticker: string): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.post(`${API_BASE}/api/holdings/${ticker}`);
+    return response.data;
+  },
+
+  removeHolding: async (ticker: string): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.delete(`${API_BASE}/api/holdings/${ticker}`);
+    return response.data;
+  },
+
+  isHolding: async (ticker: string): Promise<{ ticker: string; isHolding: boolean }> => {
+    const response = await axios.get(`${API_BASE}/api/holdings/${ticker}`);
+    return response.data;
+  },
+
+  // Watchlist Management
+  getWatchlists: async (): Promise<{ watchlists: any[]; count: number }> => {
+    const response = await axios.get(`${API_BASE}/api/watchlists`);
+    return response.data;
+  },
+
+  getWatchlist: async (id: string): Promise<any> => {
+    const response = await axios.get(`${API_BASE}/api/watchlists/${id}`);
+    return response.data;
+  },
+
+  createWatchlist: async (name: string, stocks: string[] = []): Promise<{ success: boolean; watchlist: any }> => {
+    const response = await axios.post(`${API_BASE}/api/watchlists`, { name, stocks });
+    return response.data;
+  },
+
+  updateWatchlist: async (id: string, updates: any): Promise<{ success: boolean; watchlist: any }> => {
+    const response = await axios.put(`${API_BASE}/api/watchlists/${id}`, updates);
+    return response.data;
+  },
+
+  deleteWatchlist: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.delete(`${API_BASE}/api/watchlists/${id}`);
+    return response.data;
+  },
+
+  addToWatchlist: async (id: string, stocks: string[]): Promise<{ success: boolean; added: number; total: number }> => {
+    const response = await axios.post(`${API_BASE}/api/watchlists/${id}/stocks`, { stocks });
+    return response.data;
+  },
+
+  removeFromWatchlist: async (id: string, stocks: string[]): Promise<{ success: boolean; removed: number; total: number }> => {
+    const response = await axios.delete(`${API_BASE}/api/watchlists/${id}/stocks`, { data: { stocks } });
+    return response.data;
+  },
+
+  // Live Price Data
+  getLivePrice: async (ticker: string): Promise<{
+    ticker: string;
+    price: number;
+    previousClose: number;
+    priceChange: number;
+    timestamp: string;
+  }> => {
+    const response = await axios.get(`${API_BASE}/api/price/${ticker}`);
+    return response.data;
+  },
+
+
+
+  // Price Alerts
+  getAlerts: async (): Promise<{ alerts: any[]; count: number }> => {
+    const response = await axios.get(`${API_BASE}/api/alerts`);
+    return response.data;
+  },
+
+  getAlertsByTicker: async (ticker: string): Promise<{ alerts: any[]; count: number }> => {
+    const response = await axios.get(`${API_BASE}/api/alerts/ticker/${ticker}`);
+    return response.data;
+  },
+
+  createAlert: async (ticker: string, targetPrice: number, condition: 'above' | 'below'): Promise<{ success: boolean; alert: any }> => {
+    const response = await axios.post(`${API_BASE}/api/alerts`, { ticker, targetPrice, condition });
+    return response.data;
+  },
+
+  deleteAlert: async (alertId: string): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.delete(`${API_BASE}/api/alerts/${alertId}`);
+    return response.data;
+  },
+
+  updateAlert: async (alertId: string, updates: any): Promise<{ success: boolean; alert: any }> => {
+    const response = await axios.put(`${API_BASE}/api/alerts/${alertId}`, updates);
+    return response.data;
+  },
+
+  // Settings
+  getSettings: async (): Promise<any> => {
+    const response = await axios.get(`${API_BASE}/api/settings`);
+    return response.data;
+  },
+
+  updateSettings: async (updates: any): Promise<{ success: boolean; settings: any }> => {
+    const response = await axios.put(`${API_BASE}/api/settings`, updates);
+    return response.data;
+  },
+
+  sendTestTelegram: async (chatId: string): Promise<{ success: boolean; messageId?: string; error?: string }> => {
+    const response = await axios.post(`${API_BASE}/api/test-telegram`, { chatId });
+    return response.data;
+  },
+
+  getTelegramBotInfo: async (): Promise<{ success: boolean; bot?: any; error?: string }> => {
+    const response = await axios.get(`${API_BASE}/api/telegram/bot-info`);
+    return response.data;
+  },
+
+  getTelegramUpdates: async (): Promise<{ success: boolean; updates?: any[]; error?: string }> => {
+    const response = await axios.get(`${API_BASE}/api/telegram/updates`);
+    return response.data;
+  },
+
+  // Institutional Changes
+  getInstitutionalChanges: async (): Promise<{ additions: any[]; sells: any[] }> => {
+    const response = await axios.get(`${API_BASE}/api/institutional-changes`);
+    return response.data;
+  },
+
+  clearInstitutionalChanges: async (): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.delete(`${API_BASE}/api/institutional-changes`);
+    return response.data;
+  }
+};
+
+export default api;
