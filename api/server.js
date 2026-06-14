@@ -500,6 +500,35 @@ async function checkFireDrops(previousResults, newResults) {
   }
 }
 
+async function appendTickersToWatchlistByName(name, tickers) {
+  try {
+    const normalizedTickers = [...new Set(
+      (tickers || [])
+        .map((ticker) => String(ticker || '').toUpperCase().trim())
+        .filter(Boolean)
+    )];
+
+    if (normalizedTickers.length === 0) {
+      return { added: 0, total: 0, watchlist: null };
+    }
+
+    const watchlists = await dbService.getWatchlists();
+    let watchlist = watchlists.find((w) => w.name === name);
+
+    if (!watchlist) {
+      watchlist = await dbService.createWatchlist(name, []);
+      console.log(`📋 Created watchlist: ${name}`);
+    }
+
+    const result = await dbService.addToWatchlist(watchlist.id, normalizedTickers);
+    console.log(`📋 ${name}: added ${result.added}, total ${result.total}`);
+    return { ...result, watchlist };
+  } catch (error) {
+    console.error(`❌ Failed updating watchlist ${name}:`, error.message);
+    return { added: 0, total: 0, watchlist: null };
+  }
+}
+
 // API Routes
 
 // Start scan
@@ -819,12 +848,26 @@ app.post("/api/scan/start", async (req, res) => {
         } else {
           console.log(`⏭️ Mini scan: Skipping ticker list update and auto-populate`);
 
+          if (isDailyMini) {
+            // Keep a separate, growing review list for daily-mini qualifying stocks
+            await appendTickersToWatchlistByName(
+              'Daily Mini Review',
+              qualifyingStocks.map((stock) => stock.ticker)
+            );
+          }
+
           // Send mini scan notification to Telegram - only if fire stocks under $1
           try {
             const settings = await dbService.getSettings();
             if (settings && settings.telegramChatId) {
               // Filter fire stocks under $1
               const fireStocksUnder1 = qualifyingStocks.filter(s => s.fire_level >= 1 && s.price < 1.0);
+
+              // Persist mini under-$1 results in a dedicated review watchlist
+              await appendTickersToWatchlistByName(
+                'Fire Stocks Under $1',
+                fireStocksUnder1.map((stock) => stock.ticker)
+              );
 
               if (fireStocksUnder1.length > 0) {
                 let miniMessage = `🔥 *Mini Scan - Fire Stocks Under $1*\n\n`;
