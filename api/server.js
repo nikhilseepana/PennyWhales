@@ -196,6 +196,9 @@ async function refreshIndiaStocks({ sendAlerts = true } = {}) {
     await sendIndiaNewAdditionsTelegram(additions);
   }
 
+  // Keep one accumulating review watchlist for India daily symbols.
+  await appendTickersToWatchlistByName('India Daily Review', currentSymbols);
+
   return {
     ...chartinkData,
     additions,
@@ -851,7 +854,7 @@ app.post("/api/scan/start", async (req, res) => {
           if (isDailyMini) {
             // Keep a separate, growing review list for daily-mini qualifying stocks
             await appendTickersToWatchlistByName(
-              'Daily Mini Review',
+              'US Daily Mini Review',
               qualifyingStocks.map((stock) => stock.ticker)
             );
           }
@@ -862,12 +865,6 @@ app.post("/api/scan/start", async (req, res) => {
             if (settings && settings.telegramChatId) {
               // Filter fire stocks under $1
               const fireStocksUnder1 = qualifyingStocks.filter(s => s.fire_level >= 1 && s.price < 1.0);
-
-              // Persist mini under-$1 results in a dedicated review watchlist
-              await appendTickersToWatchlistByName(
-                'Fire Stocks Under $1',
-                fireStocksUnder1.map((stock) => stock.ticker)
-              );
 
               if (fireStocksUnder1.length > 0) {
                 let miniMessage = `🔥 *Mini Scan - Fire Stocks Under $1*\n\n`;
