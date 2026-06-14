@@ -1,0 +1,38 @@
+name: US Daily Mini Alert
+
+on:
+  schedule:
+    # 4:10 PM IST = 10:40 AM UTC (daily)
+    - cron: '40 10 * * *'
+  workflow_dispatch:
+
+jobs:
+  scan-and-notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./api
+        run: npm install
+
+      - name: Run US Daily Mini Alert
+        working-directory: ./api
+        env:
+          PW_NOTIFY_KEY: ${{ secrets.PW_NOTIFY_KEY }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FINVIZ_SCREENER_URL_DAILY_MINI: https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4
+        run: node usDailyMiniAlert.js
+
+      - name: Log completion
+        if: always()
+        run: echo "US daily mini alert run completed at $(date -u)"

@@ -1,0 +1,37 @@
+name: Mini Scan Alert - India Stocks
+
+on:
+  schedule:
+    # 3:00 PM IST = 09:30 AM UTC, Every weekday (Monday-Friday)
+    - cron: '30 9 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: ./api
+        run: npm install
+
+      - name: Run India Stock Mini Scan Alert
+        working-directory: ./api
+        env:
+          PW_NOTIFY_KEY: ${{ secrets.PW_NOTIFY_KEY }}
+        run: node miniScanAlert-india.js
+
+      - name: Upload scan logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: india-scan-logs
+          path: api/logs/
+          retention-days: 7
