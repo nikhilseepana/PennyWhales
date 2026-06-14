@@ -53,13 +53,12 @@ function getConfiguredChartinkScreenerUrls() {
 
 function buildChartinkStockUrl(symbol) {
   const scanLink = String(process.env.CHARTINK_SCAN_LINK || '').trim();
-  const navToken = '1781433224059_struqyex';
 
   if (!scanLink) {
-    return `https://chartink.com/stocks-new?from_scan=1&symbol=${encodeURIComponent(symbol)}&timeframe=Daily&nav_token=${navToken}`;
+    return `https://chartink.com/stocks-new?from_scan=1&symbol=${encodeURIComponent(symbol)}&timeframe=daily`;
   }
 
-  return `https://chartink.com/stocks-new?from_scan=1&scan_link=${encodeURIComponent(scanLink)}&symbol=${encodeURIComponent(symbol)}&timeframe=Daily&nav_token=${navToken}`;
+  return `https://chartink.com/stocks-new?from_scan=1&scan_link=${encodeURIComponent(scanLink)}&symbol=${encodeURIComponent(symbol)}&timeframe=daily`;
 }
 
 function saveIndiaStocks(symbols) {
