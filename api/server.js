@@ -1006,8 +1006,34 @@ app.get("/api/scan/results", async (req, res) => {
     const industries = req.query.industries ? req.query.industries.split(',') : [];
     const volumeFilter = req.query.volumeFilter ? req.query.volumeFilter.split(',') : [];
     const sortOrder = req.query.sortOrder ? req.query.sortOrder.split(',') : [];
-    const scanType = ['fullScan', 'miniScan', 'dailyMini'].includes(req.query.scanType) ? req.query.scanType : 'fullScan';
-    const results = await dbService.getScanResults(scanType);
+    const requestedScanType = String(req.query.scanType || 'all').trim();
+    const scanType = ['all', 'fullScan', 'miniScan', 'dailyMini'].includes(requestedScanType)
+      ? requestedScanType
+      : 'all';
+
+    let results;
+    if (scanType === 'all') {
+      const stocksMap = await dbService.getAllStocksMap();
+      const allResults = await dbService.getAllScanResults();
+      const mergedStocks = Array.from(stocksMap.values());
+      const timestamps = [
+        allResults.fullScan?.timestamp,
+        allResults.miniScan?.timestamp,
+        allResults.dailyMini?.timestamp,
+      ].filter(Boolean);
+      const latestTimestamp = timestamps.length > 0 ? timestamps.sort().at(-1) : null;
+
+      results = {
+        stocks: mergedStocks,
+        summary: {
+          total_processed: mergedStocks.length,
+          qualifying_count: mergedStocks.length,
+        },
+        timestamp: latestTimestamp,
+      };
+    } else {
+      results = await dbService.getScanResults(scanType);
+    }
     const rejectedTickers = new Set(await dbService.getRejectedTickers());
 
     console.log(`📡 GET /api/scan/results: page=${page}, limit=${limit}, searchQuery="${searchQuery}", scanType=${scanType}`);
@@ -1183,14 +1209,14 @@ app.get("/api/scan/results", async (req, res) => {
     const paginatedStocks = stocksToPaginate.slice(skip, skip + limit);
 
     // Update summary counts for paginated results
-    const summary = results.summary || {};
+    const summary = { ...(results.summary || {}) };
     summary.total_stocks = totalStocks;
     summary.qualifying_count = totalStocks;
-    summary.fire_level_5 = results.stocks.filter((s) => s.fire_level === 5).length;
-    summary.fire_level_4 = results.stocks.filter((s) => s.fire_level === 4).length;
-    summary.fire_level_3 = results.stocks.filter((s) => s.fire_level === 3).length;
-    summary.fire_level_2 = results.stocks.filter((s) => s.fire_level === 2).length;
-    summary.fire_level_1 = results.stocks.filter((s) => s.fire_level === 1).length;
+    summary.fire_level_5 = (results.stocks || []).filter((s) => s.fire_level === 5).length;
+    summary.fire_level_4 = (results.stocks || []).filter((s) => s.fire_level === 4).length;
+    summary.fire_level_3 = (results.stocks || []).filter((s) => s.fire_level === 3).length;
+    summary.fire_level_2 = (results.stocks || []).filter((s) => s.fire_level === 2).length;
+    summary.fire_level_1 = (results.stocks || []).filter((s) => s.fire_level === 1).length;
     summary.total_fire_stocks = totalStocks;
 
     res.json({
