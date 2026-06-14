@@ -26,6 +26,8 @@ jobs:
         working-directory: ./api
         env:
           PW_NOTIFY_KEY: ${{ secrets.PW_NOTIFY_KEY }}
+          CHARTINK_SCAN_LINK: scanlink:bc07d725c8bc8b366132a7a19b3d84fb
+          CHARTINK_SCREENER_URL: https://chartink.com/screener/down-by-50-with-moment
         run: node miniScanAlert-india.js
 
       - name: Upload scan logs
