@@ -200,8 +200,8 @@ async function refreshIndiaStocks({ sendAlerts = true } = {}) {
     await sendIndiaNewAdditionsTelegram(additions);
   }
 
-  // Keep one accumulating review watchlist for India daily symbols.
-  await appendTickersToWatchlistByName('India Daily Review', mergedSymbols);
+  // Append only newly discovered symbols from this refresh to the review watchlist.
+  await appendTickersToWatchlistByName('India Daily Review', additions);
 
   return {
     ...chartinkData,
