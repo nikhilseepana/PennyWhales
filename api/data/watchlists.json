@@ -60,8 +60,12 @@
   {
     "id": "watchlist_1781464200000",
     "name": "Fire Stocks Under $1",
-    "stocks": [],
+    "stocks": [
+      "ALIT",
+      "LAB",
+      "BYND"
+    ],
     "created": "2026-06-14T19:10:00.000Z",
-    "updated": "2026-06-14T19:10:00.000Z"
+    "updated": "2026-06-14T18:33:52.704Z"
   }
 ]
