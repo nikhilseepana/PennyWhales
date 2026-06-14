@@ -62,15 +62,26 @@ function priceText(value) {
   return `$${Number(value).toFixed(2)}`;
 }
 
+function formatTimestamp() {
+  const now = new Date();
+  const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+  const formatter = new Intl.DateTimeFormat('en-US', options);
+  const parts = formatter.formatToParts(now);
+  
+  const date = `${parts.find(p => p.type === 'month').value}/${parts.find(p => p.type === 'day').value}/${parts.find(p => p.type === 'year').value}`;
+  const time = `${parts.find(p => p.type === 'hour').value}:${parts.find(p => p.type === 'minute').value}:${parts.find(p => p.type === 'second').value} ${parts.find(p => p.type === 'dayPeriod').value.toLowerCase()}`;
+  
+  return `${date}, ${time}`;
+}
+
 function formatMessage({ url, inputCount, qualifyingStocks }) {
-  const stamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+  const stamp = formatTimestamp();
   const total = qualifyingStocks.length;
   const preview = qualifyingStocks.slice(0, 12);
 
   if (inputCount === 0) {
     return [
       '📈 US Daily Mini Scan',
-      '',
       `⏰ ${stamp}`,
       `🔎 Filters: ${url}`,
       '',
@@ -81,28 +92,26 @@ function formatMessage({ url, inputCount, qualifyingStocks }) {
   if (total === 0) {
     return [
       '📈 US Daily Mini Scan',
-      '',
       `⏰ ${stamp}`,
-      `🔎 Filters: ${url}`,
       `📦 Screener Matches: ${inputCount}`,
+      `🔎 Filters: ${url}`,
       '',
       'No stocks passed fire-level filter today.',
     ].join('\n');
   }
 
-  const lines = preview.flatMap((stock, idx) => {
-    const fireEmoji =
-      stock.fire_level >= 5 ? '🔴' : stock.fire_level >= 4 ? '🟠' : stock.fire_level >= 3 ? '🟡' : '🔵';
+  const lines = preview.flatMap((stock) => {
+    const fireEmojis = '🔥'.repeat(stock.fire_level || 0);
     const brValue = Number(stock.blackrock_market_value || 0);
     const vgValue = Number(stock.vanguard_market_value || 0);
     const totalInstitutionalValue = brValue + vgValue;
+    const marketCap = Number(stock.market_cap || 0);
 
     return [
-      `${idx + 1}. ${fireEmoji} ${stock.ticker} | Fire ${stock.fire_level} | ${stock.recommendation || 'N/A'}`,
-      `   Price: ${priceText(stock.price)} | Day: ${pct(stock.performance?.day)} | MCap: ${moneyMB(stock.market_cap)}`,
-      `   BR: ${pct(stock.blackrock_pct)} (${moneyMB(brValue)}) | VG: ${pct(stock.vanguard_pct)} (${moneyMB(vgValue)})`,
-      `   Total BR+VG: ${moneyMB(totalInstitutionalValue)}`,
-      `   Inst Trans: ${pct(stock.inst_trans)} | SMA200: ${pct(stock.sma200)}`,
+      `${stock.ticker}: ${priceText(stock.price)} ${fireEmojis} (Fire ${stock.fire_level})`,
+      `   BlackRock: ${pct(stock.blackrock_pct)} (${moneyMB(brValue)}) | Vanguard: ${pct(stock.vanguard_pct)} (${moneyMB(vgValue)})`,
+      `   Total BR+VG: ${moneyMB(totalInstitutionalValue)} | Total Market Value: ${moneyMB(marketCap)}`,
+      `   📊 [View Chart](https://www.tradingview.com/chart/?symbol=${stock.ticker})`,
       '',
     ];
   });
@@ -111,7 +120,6 @@ function formatMessage({ url, inputCount, qualifyingStocks }) {
 
   return [
     '📈 US Daily Mini Scan',
-    '',
     `⏰ ${stamp}`,
     `📦 Screener Matches: ${inputCount}`,
     `🔥 Fire Qualified: ${total}`,

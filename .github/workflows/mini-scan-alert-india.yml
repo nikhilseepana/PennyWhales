@@ -30,7 +30,7 @@ jobs:
 
       - name: Upload scan logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: india-scan-logs
           path: api/logs/

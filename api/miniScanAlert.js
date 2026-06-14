@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+require('dotenv').config();
+
 /**
  * Standalone Mini Scan Alert Script
  * Scans mini screener ($3 and under) for fire stocks under $1
@@ -419,23 +421,18 @@ async function runMiniScanAlert() {
       return a.price - b.price;
     });
 
-    let message = `🔥 MINI SCAN ALERT - FIRE STOCKS UNDER $1\n\n`;
-    message += `⏰ ${new Date().toLocaleString()}\n`;
-    message += `📊 Found ${fireStocksUnder1.length} stock(s):\n`;
-    message += `${'='.repeat(50)}\n\n`;
+    let message = `**Mini Scan - Fire Stocks Under $1**\n\n`;
+    message += `Found ${fireStocksUnder1.length} fire stock(s) under $1:\n\n`;
 
     fireStocksUnder1.forEach(stock => {
-      const fireEmoji = stock.fireLevel === 5 ? '🔴' : stock.fireLevel === 4 ? '🟠' : '🟡';
-      message += `${fireEmoji} ${stock.ticker} - Fire Level ${stock.fireLevel}\n`;
-      message += `   💵 Price: $${stock.price.toFixed(2)}\n`;
-
+      const fireEmojis = '🔥'.repeat(stock.fireLevel || 0);
       const totalInstitutionalValue = (stock.blackrockValue || 0) + (stock.vanguardValue || 0);
-      message += `   📈 BR: ${formatMoneyMB(stock.blackrockValue)} (${stock.blackrockPct}%)`;
-      message += ` | VG: ${formatMoneyMB(stock.vanguardValue)} (${stock.vanguardPct}%)\n`;
-      message += `   🧮 Total BR+VG: ${formatMoneyMB(totalInstitutionalValue)}\n\n`;
+      
+      message += `${stock.ticker}: $${stock.price.toFixed(2)} ${fireEmojis} (Fire ${stock.fireLevel})\n`;
+      message += `   BlackRock: ${stock.blackrockPct}% (${formatMoneyMB(stock.blackrockValue)}) | Vanguard: ${stock.vanguardPct}% (${formatMoneyMB(stock.vanguardValue)})\n`;
+      message += `   Total BR+VG: ${formatMoneyMB(totalInstitutionalValue)}\n`;
+      message += `   📊 [View Chart](https://www.tradingview.com/chart/?symbol=${stock.ticker})\n\n`;
     });
-    
-    message += `${'='.repeat(50)}\n✅ Mini Scan Complete`;
 
     await sendTelegramMessage(message);
   } else {
