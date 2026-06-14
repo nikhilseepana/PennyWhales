@@ -277,11 +277,12 @@ const Dashboard: React.FC = () => {
       console.log('Loaded watchlists:', data.watchlists);
       setWatchlists(data.watchlists || []);
 
-      // Auto-load "Personal" watchlist for eye icon status
+      // Load "Personal" watchlist tickers for eye icon status only
       if (data.watchlists && data.watchlists.length > 0) {
         const personalWatchlist = data.watchlists.find((w: any) => w.name === 'Personal');
         if (personalWatchlist) {
-          await loadActiveWatchlist(personalWatchlist.id);
+          const personal = await api.getWatchlist(personalWatchlist.id);
+          setWatchlistStocks(new Set(personal.stocks || []));
         } else {
           // Create "Personal" watchlist if it doesn't exist
           try {
@@ -292,7 +293,8 @@ const Dashboard: React.FC = () => {
             setWatchlists(updatedData.watchlists || []);
             const createdPersonal = updatedData.watchlists.find((w: any) => w.name === 'Personal');
             if (createdPersonal) {
-              await loadActiveWatchlist(createdPersonal.id);
+              const personal = await api.getWatchlist(createdPersonal.id);
+              setWatchlistStocks(new Set(personal.stocks || []));
             }
           } catch (createErr) {
             console.error('Error creating Personal watchlist:', createErr);

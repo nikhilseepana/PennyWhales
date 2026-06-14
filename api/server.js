@@ -1013,13 +1013,22 @@ app.get("/api/scan/results", async (req, res) => {
 
     let results;
     if (scanType === 'all') {
-      const stocksMap = await dbService.getAllStocksMap();
+      const allResults = await dbService.getAllScanResults();
+      const stocksMap = new Map();
+      for (const section of ['fullScan', 'miniScan']) {
+        const stocks = allResults[section]?.stocks || [];
+        for (const stock of stocks) {
+          const existing = stocksMap.get(stock.ticker);
+          if (!existing || (stock.fire_level || 0) > (existing.fire_level || 0)) {
+            stocksMap.set(stock.ticker, stock);
+          }
+        }
+      }
       const allResults = await dbService.getAllScanResults();
       const mergedStocks = Array.from(stocksMap.values());
       const timestamps = [
         allResults.fullScan?.timestamp,
         allResults.miniScan?.timestamp,
-        allResults.dailyMini?.timestamp,
       ].filter(Boolean);
       const latestTimestamp = timestamps.length > 0 ? timestamps.sort().at(-1) : null;
 
