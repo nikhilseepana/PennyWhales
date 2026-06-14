@@ -65,6 +65,20 @@
         "SMMT"
       ],
       "notes": "Daily-mini screener matches after rejected ticker filter"
+    },
+    {
+      "id": "us_daily_mini_1781459913591",
+      "timestamp": "2026-06-14T17:58:33.591Z",
+      "scanDate": "2026-06-14",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4",
+      "totalMatched": 3,
+      "totalAfterRejectedFilter": 3,
+      "tickers": [
+        "FWRD",
+        "RZLV",
+        "SMMT"
+      ],
+      "notes": "Daily-mini screener matches after rejected ticker filter"
     }
   ]
 }

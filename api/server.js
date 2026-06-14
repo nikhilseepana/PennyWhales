@@ -185,11 +185,15 @@ async function refreshIndiaStocks({ sendAlerts = true } = {}) {
   const currentSymbols = (chartinkData.symbols || []).map((s) =>
     String(s).toUpperCase().trim()
   );
+  const mergedSymbols = Array.from(
+    new Set([...previousState.symbols, ...currentSymbols])
+  );
   const additions = currentSymbols.filter((symbol) => !previousSet.has(symbol));
   const hasBaseline =
     Array.isArray(previousState.symbols) && previousState.symbols.length > 0;
 
-  writeIndiaStocksState(currentSymbols);
+  // Keep accumulating symbols in indiaStocks state (do not replace with only latest table set).
+  writeIndiaStocksState(mergedSymbols);
 
   // Only alert for incremental additions after an initial baseline exists.
   if (sendAlerts && hasBaseline && additions.length > 0) {
@@ -197,7 +201,7 @@ async function refreshIndiaStocks({ sendAlerts = true } = {}) {
   }
 
   // Keep one accumulating review watchlist for India daily symbols.
-  await appendTickersToWatchlistByName('India Daily Review', currentSymbols);
+  await appendTickersToWatchlistByName('India Daily Review', mergedSymbols);
 
   return {
     ...chartinkData,
