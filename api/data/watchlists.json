@@ -41,9 +41,12 @@
   {
     "id": "watchlist_1781459924042",
     "name": "US Daily Mini Review",
-    "stocks": [],
+    "stocks": [
+      "FWRD",
+      "RZLV"
+    ],
     "created": "2026-06-14T17:58:44.042Z",
-    "updated": "2026-06-14T18:20:56.238Z"
+    "updated": "2026-06-14T18:32:29.708Z"
   },
   {
     "id": "watchlist_1781460014813",
