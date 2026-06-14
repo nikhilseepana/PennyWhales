@@ -13,7 +13,6 @@
     "MYGN",
     "KLC",
     "VYX",
-    "LRMR",
     "RPD",
     "SPT",
     "SLS",
@@ -29,7 +28,6 @@
     "WTI",
     "LXRX",
     "ALTO",
-    "TARA",
     "CXM",
     "OPTU",
     "FRSH",
@@ -41,7 +39,6 @@
     "PAYS",
     "MLCO",
     "GTM",
-    "FULC",
     "WOOF",
     "LSPD",
     "BCRX",
@@ -49,7 +46,6 @@
     "OPFI",
     "ARKO",
     "SHO",
-    "RLAY",
     "BLMN",
     "BNED",
     "SVC",
@@ -94,7 +90,6 @@
     "BRBS",
     "CFFN",
     "AQN",
-    "ACRS",
     "AVTR",
     "BVS",
     "PTLO",
@@ -125,7 +120,6 @@
     "COTY",
     "SHLS",
     "ADAM",
-    "LXEO",
     "AMC",
     "DRH",
     "ARRY",
@@ -142,7 +136,6 @@
     "TDOC",
     "GNW",
     "TRTX",
-    "IOVA",
     "ORC",
     "RSVR",
     "HLMN",
@@ -181,7 +174,6 @@
     "CLOV",
     "MITT",
     "MGTX",
-    "ZVRA",
     "ICL",
     "RYAM",
     "AVAH",
@@ -191,7 +183,6 @@
     "KURA",
     "GEVO",
     "NXDT",
-    "AQST",
     "RLX",
     "SFIX",
     "GNL",
@@ -204,7 +195,6 @@
     "MBC",
     "ALIT",
     "BBBY",
-    "ABEO",
     "GRAB",
     "NAGE",
     "VSTM",
@@ -217,10 +207,8 @@
     "AHCO",
     "TSSI",
     "REPL",
-    "CCCC",
     "UIS",
     "AUR",
-    "TRDA",
     "MNKD",
     "BTG",
     "FNKO",
@@ -230,7 +218,6 @@
     "UPWK",
     "VZLA",
     "TGB",
-    "CADL",
     "DC",
     "EXK",
     "VUZI",
@@ -250,7 +237,6 @@
     "HUMA",
     "GROY",
     "COUR",
-    "BBOT",
     "TME",
     "HPK",
     "PACB",
@@ -263,7 +249,6 @@
     "EDIT",
     "AGNT",
     "IMMR",
-    "LDI",
     "RMAX",
     "CDXS",
     "NUVB",
@@ -278,7 +263,6 @@
     "KWY",
     "WEST",
     "CRMD",
-    "FHTX",
     "PAGS",
     "TALK",
     "ASPI",
@@ -288,10 +272,8 @@
     "ORIC",
     "NIQ",
     "MFA",
-    "LCTX",
     "ITUB",
     "GERN",
-    "ESPR",
     "ACHR",
     "VIR",
     "EOLS",
@@ -299,14 +281,11 @@
     "YMM",
     "CIA",
     "TOI",
-    "LPRO",
     "BTBT",
     "TAL",
-    "RLMD",
     "OEC",
     "TWI",
     "OSG",
-    "VYGR",
     "FLO",
     "QSI",
     "BBD",
@@ -315,12 +294,10 @@
     "JBI",
     "DNA",
     "PBYI",
-    "IKT",
     "LAND",
     "BORR",
     "MGNX",
     "BGS",
-    "CMPX",
     "GO",
     "BFLY",
     "UAMY",
@@ -328,7 +305,6 @@
     "ADT",
     "SERV",
     "KODK",
-    "KYTX",
     "OCUL",
     "ELDN",
     "COMP",
@@ -354,13 +330,10 @@
     "UWMC",
     "INTR",
     "STLA",
-    "CATX",
     "BMBL",
     "NXDR",
     "HYLN",
-    "AKBA",
     "VNDA",
-    "CTMX",
     "REI",
     "MVST",
     "GSM",
@@ -377,7 +350,6 @@
     "VITL",
     "SPRY",
     "NEOG",
-    "ALLO",
     "PGEN",
     "SMRT",
     "BYND",
@@ -404,9 +376,7 @@
     "PURR",
     "TMCI",
     "ABSI",
-    "FDMT",
     "VRRM",
-    "FATE",
     "ABCL",
     "DXC",
     "XRX",
@@ -450,7 +420,25 @@
     "SNFCA",
     "WEN",
     "AMPL",
-    "DNUT"
+    "DNUT",
+    "FPI",
+    "FUBO",
+    "JOBY",
+    "LTBR",
+    "NTSK",
+    "NVAX",
+    "NXE",
+    "OLMA",
+    "OMER",
+    "ONDS",
+    "OWL",
+    "PCT",
+    "PONY",
+    "PSNL",
+    "QUBT",
+    "SMR",
+    "TE",
+    "VNET"
   ],
   "rejectedTickers": [
     {
@@ -1468,6 +1456,166 @@
     {
       "ticker": "GSIT",
       "rejectedAt": "2026-06-11T15:29:20.813Z"
+    },
+    {
+      "ticker": "LRMR",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "TARA",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "FULC",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "RLAY",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "ACRS",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "LXEO",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "IOVA",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "ZVRA",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "AQST",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "ABEO",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "CCCC",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "TRDA",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "CADL",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "BBOT",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "LDI",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "FHTX",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "LCTX",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "ESPR",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "LPRO",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "RLMD",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "VYGR",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "IKT",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "CMPX",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "KYTX",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "CATX",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "AKBA",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "CTMX",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "ALLO",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "FDMT",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "FATE",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "AGMB",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "BKKT",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "CGNT",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "EH",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "EIKN",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "ELVA",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "FVRR",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "IMTX",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "MBAV",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "SBSW",
+      "rejectedAt": "2026-06-14T17:35:00.737Z"
     }
   ]
 }

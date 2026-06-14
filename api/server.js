@@ -1024,7 +1024,6 @@ app.get("/api/scan/results", async (req, res) => {
           }
         }
       }
-      const allResults = await dbService.getAllScanResults();
       const mergedStocks = Array.from(stocksMap.values());
       const timestamps = [
         allResults.fullScan?.timestamp,
