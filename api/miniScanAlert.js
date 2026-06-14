@@ -17,6 +17,7 @@ const cheerio = require('cheerio');
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const dbService = require('./database');
 
 // ============= CONFIG =============
 // On GitHub: Prefer PW_NOTIFY_KEY secret name.
@@ -307,6 +308,32 @@ function formatMoneyMB(value) {
   return `$${numeric.toFixed(2)}M`;
 }
 
+async function appendUsDailyMiniReviewWatchlist(tickers) {
+  try {
+    const normalized = [...new Set(
+      (tickers || [])
+        .map((ticker) => String(ticker || '').toUpperCase().trim())
+        .filter(Boolean)
+    )];
+
+    if (normalized.length === 0) {
+      return;
+    }
+
+    const watchlists = await dbService.getWatchlists();
+    let watchlist = watchlists.find((w) => w.name === 'US Daily Mini Review');
+
+    if (!watchlist) {
+      watchlist = await dbService.createWatchlist('US Daily Mini Review', []);
+    }
+
+    const result = await dbService.addToWatchlist(watchlist.id, normalized);
+    console.log(`📋 US Daily Mini Review: added ${result.added}, total ${result.total}`);
+  } catch (error) {
+    console.error('⚠️ Failed to append US Daily Mini Review watchlist:', error.message || error);
+  }
+}
+
 // ============= MAIN EXECUTION =============
 
 async function runMiniScanAlert() {
@@ -414,6 +441,8 @@ async function runMiniScanAlert() {
   
   if (fireStocksUnder1.length > 0) {
     console.log(`🔥 Found ${fireStocksUnder1.length} fire stocks under $1!\n`);
+
+    await appendUsDailyMiniReviewWatchlist(fireStocksUnder1.map((stock) => stock.ticker));
     
     // Sort by fire level (highest first), then by price (lowest first)
     fireStocksUnder1.sort((a, b) => {

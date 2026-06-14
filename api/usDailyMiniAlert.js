@@ -5,6 +5,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const telegramService = require('./telegramService');
+const dbService = require('./database');
 const { scrapeFinvizScreener } = require('./finvizScraper');
 const StockScanner = require('./stockScanner');
 const { shouldExcludeStock } = require('./exclusionUtils');
@@ -132,6 +133,32 @@ function formatMessage({ url, inputCount, qualifyingStocks }) {
     .join('\n');
 }
 
+async function appendUsDailyMiniReviewWatchlist(tickers) {
+  try {
+    const normalized = [...new Set(
+      (tickers || [])
+        .map((ticker) => String(ticker || '').toUpperCase().trim())
+        .filter(Boolean)
+    )];
+
+    if (normalized.length === 0) {
+      return;
+    }
+
+    const watchlists = await dbService.getWatchlists();
+    let watchlist = watchlists.find((w) => w.name === 'US Daily Mini Review');
+
+    if (!watchlist) {
+      watchlist = await dbService.createWatchlist('US Daily Mini Review', []);
+    }
+
+    const result = await dbService.addToWatchlist(watchlist.id, normalized);
+    console.log(`📋 US Daily Mini Review: added ${result.added}, total ${result.total}`);
+  } catch (error) {
+    console.error('⚠️ Failed to append US Daily Mini Review watchlist:', error.message || error);
+  }
+}
+
 async function run() {
   const url = getConfiguredUrl();
   const chatId = await resolveChatId();
@@ -182,6 +209,9 @@ async function run() {
     inputCount: tickers.length,
     qualifyingStocks,
   });
+
+  await appendUsDailyMiniReviewWatchlist(qualifyingStocks.map((stock) => stock.ticker));
+
   const sent = await telegramService.sendMessage(chatId, message, null);
 
   if (!sent.success) {
