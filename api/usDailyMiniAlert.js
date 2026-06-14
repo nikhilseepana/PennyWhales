@@ -76,15 +76,12 @@ function formatTimestamp() {
 }
 
 function formatMessage({ url, inputCount, qualifyingStocks }) {
-  const stamp = formatTimestamp();
   const total = qualifyingStocks.length;
   const preview = qualifyingStocks.slice(0, 12);
 
   if (inputCount === 0) {
     return [
-      '📈 US Daily Mini Scan',
-      `⏰ ${stamp}`,
-      `🔎 Filters: ${url}`,
+      '**US Daily Mini Scan**',
       '',
       'No stocks matched today.',
     ].join('\n');
@@ -92,16 +89,13 @@ function formatMessage({ url, inputCount, qualifyingStocks }) {
 
   if (total === 0) {
     return [
-      '📈 US Daily Mini Scan',
-      `⏰ ${stamp}`,
-      `📦 Screener Matches: ${inputCount}`,
-      `🔎 Filters: ${url}`,
+      '**US Daily Mini Scan**',
       '',
       'No stocks passed fire-level filter today.',
     ].join('\n');
   }
 
-  const lines = preview.flatMap((stock) => {
+  const lines = preview.flatMap((stock, index) => {
     const fireEmojis = '🔥'.repeat(stock.fire_level || 0);
     const brValue = Number(stock.blackrock_market_value || 0);
     const vgValue = Number(stock.vanguard_market_value || 0);
@@ -120,11 +114,9 @@ function formatMessage({ url, inputCount, qualifyingStocks }) {
   const hasMore = total > preview.length;
 
   return [
-    '📈 US Daily Mini Scan',
-    `⏰ ${stamp}`,
-    `📦 Screener Matches: ${inputCount}`,
-    `🔥 Fire Qualified: ${total}`,
-    `🔎 Filters: ${url}`,
+    '**US Daily Mini Scan**',
+    '',
+    `Found ${total} fire stock(s):`,
     '',
     ...lines,
     hasMore ? `...and ${total - preview.length} more fire stocks` : '',

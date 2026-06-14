@@ -457,10 +457,10 @@ async function runMiniScanAlert() {
       const fireEmojis = '🔥'.repeat(stock.fireLevel || 0);
       const totalInstitutionalValue = (stock.blackrockValue || 0) + (stock.vanguardValue || 0);
       
-      message += `${stock.ticker}: $${stock.price.toFixed(2)} ${fireEmojis} (Fire ${stock.fireLevel})\n`;
-      message += `   BlackRock: ${stock.blackrockPct}% (${formatMoneyMB(stock.blackrockValue)}) | Vanguard: ${stock.vanguardPct}% (${formatMoneyMB(stock.vanguardValue)})\n`;
-      message += `   Total BR+VG: ${formatMoneyMB(totalInstitutionalValue)}\n`;
-      message += `   📊 [View Chart](https://www.tradingview.com/chart/?symbol=${stock.ticker})\n\n`;
+      message += `${stock.ticker} | $${stock.price.toFixed(2)} | Fire ${stock.fireLevel} ${fireEmojis}\n`;
+      message += `   BR: ${stock.blackrockPct}% (${formatMoneyMB(stock.blackrockValue)}) | VG: ${stock.vanguardPct}% (${formatMoneyMB(stock.vanguardValue)})\n`;
+      message += `   BR+VG: ${formatMoneyMB(totalInstitutionalValue)}\n`;
+      message += `   Chart: https://www.tradingview.com/chart/?symbol=${stock.ticker}\n\n`;
     });
 
     await sendTelegramMessage(message);
