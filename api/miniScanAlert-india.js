@@ -15,6 +15,7 @@ require('dotenv').config();
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
+const dbService = require('./database');
 const { scrapeChartinkSymbols } = require('./chartinkScraper');
 const DEFAULT_CHARTINK_INDIA_SCREENER_URL =
   'https://chartink.com/screener/down-by-50-with-moment';
@@ -99,6 +100,32 @@ function saveIndiaStocks(symbols) {
     fs.writeFileSync(stocksPath, JSON.stringify(payload, null, 2));
   } catch (error) {
     console.error('⚠️ Failed to persist refreshed India stocks:', error.message);
+  }
+}
+
+async function appendIndiaDailyReviewWatchlist(symbols) {
+  try {
+    const normalizedSymbols = [...new Set(
+      (symbols || [])
+        .map((symbol) => String(symbol || '').toUpperCase().trim())
+        .filter(Boolean)
+    )];
+
+    if (normalizedSymbols.length === 0) {
+      return;
+    }
+
+    const watchlists = await dbService.getWatchlists();
+    let watchlist = watchlists.find((w) => w.name === 'India Daily Review');
+
+    if (!watchlist) {
+      watchlist = await dbService.createWatchlist('India Daily Review', []);
+    }
+
+    const result = await dbService.addToWatchlist(watchlist.id, normalizedSymbols);
+    console.log(`📋 India Daily Review: added ${result.added}, total ${result.total}`);
+  } catch (error) {
+    console.error('⚠️ Failed to append India Daily Review watchlist:', error.message || error);
   }
 }
 
@@ -495,6 +522,8 @@ async function runMiniScanAlertIndia() {
     console.log('ℹ️ No scanned values available to send.');
     return;
   }
+
+  await appendIndiaDailyReviewWatchlist(analyzed.map((item) => item.symbol));
 
   let message = '📊 Indian Stock Mini Scan Alert\n\n';
   message += `${scannedLines.length} scanned values:\n\n`;
