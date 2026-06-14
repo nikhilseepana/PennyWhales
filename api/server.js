@@ -857,18 +857,29 @@ app.post("/api/scan/start", async (req, res) => {
 
           if (isDailyMini) {
             // Keep a separate, growing review list for daily-mini qualifying stocks
+            const dailyMiniReviewTickers = qualifyingStocks
+              .filter((stock) => Number(stock.price || 0) >= 1)
+              .map((stock) => stock.ticker);
+
             await appendTickersToWatchlistByName(
               'US Daily Mini Review',
-              qualifyingStocks.map((stock) => stock.ticker)
+              dailyMiniReviewTickers
             );
           }
 
           // Send mini scan notification to Telegram - only if fire stocks under $1
           try {
             const settings = await dbService.getSettings();
+            // Filter fire stocks under $1
+            const fireStocksUnder1 = qualifyingStocks.filter(s => s.fire_level >= 1 && s.price < 1.0);
+
+            // Keep a dedicated review list for below-$1 fire stocks.
+            await appendTickersToWatchlistByName(
+              'Fire Stocks Under $1',
+              fireStocksUnder1.map((stock) => stock.ticker)
+            );
+
             if (settings && settings.telegramChatId) {
-              // Filter fire stocks under $1
-              const fireStocksUnder1 = qualifyingStocks.filter(s => s.fire_level >= 1 && s.price < 1.0);
 
               if (fireStocksUnder1.length > 0) {
                 let miniMessage = `🔥 *Mini Scan - Fire Stocks Under $1*\n\n`;

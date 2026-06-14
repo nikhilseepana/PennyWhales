@@ -210,7 +210,11 @@ async function run() {
     qualifyingStocks,
   });
 
-  await appendUsDailyMiniReviewWatchlist(qualifyingStocks.map((stock) => stock.ticker));
+  const dailyMiniReviewTickers = qualifyingStocks
+    .filter((stock) => Number(stock.price || 0) >= 1)
+    .map((stock) => stock.ticker);
+
+  await appendUsDailyMiniReviewWatchlist(dailyMiniReviewTickers);
 
   const sent = await telegramService.sendMessage(chatId, message, null);
 

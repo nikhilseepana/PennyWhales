@@ -308,7 +308,7 @@ function formatMoneyMB(value) {
   return `$${numeric.toFixed(2)}M`;
 }
 
-async function appendUsDailyMiniReviewWatchlist(tickers) {
+async function appendFireStocksUnder1Watchlist(tickers) {
   try {
     const normalized = [...new Set(
       (tickers || [])
@@ -321,16 +321,16 @@ async function appendUsDailyMiniReviewWatchlist(tickers) {
     }
 
     const watchlists = await dbService.getWatchlists();
-    let watchlist = watchlists.find((w) => w.name === 'US Daily Mini Review');
+    let watchlist = watchlists.find((w) => w.name === 'Fire Stocks Under $1');
 
     if (!watchlist) {
-      watchlist = await dbService.createWatchlist('US Daily Mini Review', []);
+      watchlist = await dbService.createWatchlist('Fire Stocks Under $1', []);
     }
 
     const result = await dbService.addToWatchlist(watchlist.id, normalized);
-    console.log(`📋 US Daily Mini Review: added ${result.added}, total ${result.total}`);
+    console.log(`📋 Fire Stocks Under $1: added ${result.added}, total ${result.total}`);
   } catch (error) {
-    console.error('⚠️ Failed to append US Daily Mini Review watchlist:', error.message || error);
+    console.error('⚠️ Failed to append Fire Stocks Under $1 watchlist:', error.message || error);
   }
 }
 
@@ -442,7 +442,7 @@ async function runMiniScanAlert() {
   if (fireStocksUnder1.length > 0) {
     console.log(`🔥 Found ${fireStocksUnder1.length} fire stocks under $1!\n`);
 
-    await appendUsDailyMiniReviewWatchlist(fireStocksUnder1.map((stock) => stock.ticker));
+    await appendFireStocksUnder1Watchlist(fireStocksUnder1.map((stock) => stock.ticker));
     
     // Sort by fire level (highest first), then by price (lowest first)
     fireStocksUnder1.sort((a, b) => {
