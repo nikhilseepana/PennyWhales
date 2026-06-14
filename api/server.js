@@ -282,9 +282,8 @@ async function autoPopulateHotPicks() {
   try {
     console.log("🔥 Auto-populating Hot Picks watchlist...");
 
-    const scanResults = await dbService.getScanResults();
-    if (!scanResults || !scanResults.stocks) {
-      console.log("⚠️ No scan results found for auto-population");
+    const scanResults = await dbService.getScanResults('fullScan');
+    if (!scanResults || !scanResults.stocks) {;
       return;
     }
 
@@ -790,14 +789,14 @@ app.post("/api/scan/start", async (req, res) => {
         };
 
         // Check for fire stock drops before saving new results (only for full scans)
-        const previousResults = await dbService.getScanResults();
+        const previousResults = await dbService.getScanResults('fullScan');
         if (!isMiniScan) {
           await checkFireDrops(previousResults, scanResults);
         } else {
           console.log(`⏭️ Mini scan: Skipping fire drop check`);
         }
 
-        await dbService.saveScanResults(scanResults);
+        await dbService.saveScanResults(scanResults, isMiniScan ? 'miniScan' : 'fullScan');
 
 
         if (failedTickers.length > 0) {
@@ -1007,10 +1006,11 @@ app.get("/api/scan/results", async (req, res) => {
     const industries = req.query.industries ? req.query.industries.split(',') : [];
     const volumeFilter = req.query.volumeFilter ? req.query.volumeFilter.split(',') : [];
     const sortOrder = req.query.sortOrder ? req.query.sortOrder.split(',') : [];
-    const results = await dbService.getScanResults();
+    const scanType = ['fullScan', 'miniScan', 'dailyMini'].includes(req.query.scanType) ? req.query.scanType : 'fullScan';
+    const results = await dbService.getScanResults(scanType);
     const rejectedTickers = new Set(await dbService.getRejectedTickers());
 
-    console.log(`📡 GET /api/scan/results: page=${page}, limit=${limit}, searchQuery="${searchQuery}"`);
+    console.log(`📡 GET /api/scan/results: page=${page}, limit=${limit}, searchQuery="${searchQuery}", scanType=${scanType}`);
     console.log(`📦 DB results: ${results.stocks?.length || 0} stocks, ${rejectedTickers.size} rejected tickers`);
 
     // Always filter out rejected stocks (market_cap_too_low, excluded, etc.) from results
@@ -1367,9 +1367,8 @@ app.post("/api/analyze/:ticker", async (req, res) => {
   try {
     const { ticker } = req.params;
 
-    // Get stock data from database
-    const scanResults = await dbService.getScanResults();
-    const stock = scanResults.stocks.find(s => s.ticker.toUpperCase() === ticker.toUpperCase());
+    // Get stock data from database (searches across all scan sections)
+    const stock = await dbService.getStockByTicker(ticker);
 
     if (!stock) {
       return res.status(404).json({ error: `Stock ${ticker} not found in database` });
@@ -1716,20 +1715,12 @@ app.get("/api/watchlists/hot-picks/populate", async (req, res) => {
 app.get("/api/watchlists", async (req, res) => {
   try {
     const watchlists = await dbService.getWatchlists();
-    const scanResults = await dbService.getScanResults();
-    const stockData = new Map();
-
-    // Create a map of stock data for quick lookup
-    if (scanResults && scanResults.stocks) {
-      scanResults.stocks.forEach((stock) => {
-        stockData.set(stock.ticker, stock);
-      });
-    }
+    const stockDataMap = await dbService.getAllStocksMap();
 
     // Add stock data to each watchlist
     const watchlistsWithStockData = watchlists.map((watchlist) => {
       const stocksWithFullData = watchlist.stocks.map((ticker) => {
-        const stock = stockData.get(ticker);
+        const stock = stockDataMap.get(ticker);
         return stock || { ticker };
       });
 
@@ -1758,13 +1749,14 @@ app.get("/api/watchlists/:id", async (req, res) => {
       return res.status(404).json({ error: "Watchlist not found" });
     }
 
-    // Get scan results and filter by watchlist tickers only
-    const scanResults = await dbService.getScanResults();
+    // Get all stocks across all scan sections
+    const allStocksMap = await dbService.getAllStocksMap();
     const tickerSet = new Set(watchlist.stocks);
 
     let stockData = [];
-    if (scanResults && scanResults.stocks) {
-      stockData = scanResults.stocks.filter((stock) => tickerSet.has(stock.ticker));
+    for (const ticker of tickerSet) {
+      const stock = allStocksMap.get(ticker);
+      if (stock) stockData.push(stock);
     }
 
     // Add missing tickers (not in scan results) as empty objects
@@ -1882,11 +1874,8 @@ app.get("/api/alerts", async (req, res) => {
   try {
     const alerts = await dbService.getPriceAlerts();
 
-    // Get scan results to enrich alerts with fire level data
-    const scanResults = await dbService.getScanResults();
-    const stocksMap = new Map(
-      (scanResults.stocks || []).map(stock => [stock.ticker, stock])
-    );
+    // Get stock data across all scan sections to enrich alerts
+    const stocksMap = await dbService.getAllStocksMap();
 
     // Enrich alerts with fire level and other stock data
     const enrichedAlerts = alerts.map(alert => {
@@ -1915,9 +1904,9 @@ app.get("/api/alerts/ticker/:ticker", async (req, res) => {
     const { ticker } = req.params;
     const alerts = await dbService.getAlertsByTicker(ticker);
 
-    // Get scan results to enrich alerts with fire level data
-    const scanResults = await dbService.getScanResults();
-    const stockData = (scanResults.stocks || []).find(s => s.ticker === ticker.toUpperCase());
+    // Get stock data across all scan sections to enrich alerts
+    const allStocksMap = await dbService.getAllStocksMap();
+    const stockData = allStocksMap.get(ticker.toUpperCase());
 
     // Enrich alerts with fire level and other stock data
     const enrichedAlerts = alerts.map(alert => {
