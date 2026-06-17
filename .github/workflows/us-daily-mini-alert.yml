@@ -2,8 +2,8 @@ name: US Daily Mini Alert
 
 on:
   schedule:
-    # 4:10 PM IST = 10:40 AM UTC (daily)
-    - cron: '40 10 * * *'
+    # 10:30 PM IST = 05:00 PM UTC, weekdays only
+    - cron: '0 17 * * 1-5'
   workflow_dispatch:
 
 permissions:

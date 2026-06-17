@@ -2,8 +2,8 @@ name: Mini Scan Alert - India Stocks
 
 on:
   schedule:
-    # 3:00 PM IST = 09:30 AM UTC, Daily
-    - cron: '30 9 * * *'
+    # 2:30 PM IST = 09:00 AM UTC, weekdays only
+    - cron: '0 9 * * 1-5'
   workflow_dispatch:
 
 permissions:
