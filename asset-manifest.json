@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/PennyWhales/static/css/main.4762526a.css",
-    "main.js": "/PennyWhales/static/js/main.8e04e5ce.js",
+    "main.js": "/PennyWhales/static/js/main.2c2ba614.js",
     "index.html": "/PennyWhales/index.html",
     "main.4762526a.css.map": "/PennyWhales/static/css/main.4762526a.css.map",
-    "main.8e04e5ce.js.map": "/PennyWhales/static/js/main.8e04e5ce.js.map"
+    "main.2c2ba614.js.map": "/PennyWhales/static/js/main.2c2ba614.js.map"
   },
   "entrypoints": [
     "static/css/main.4762526a.css",
-    "static/js/main.8e04e5ce.js"
+    "static/js/main.2c2ba614.js"
   ]
 }
