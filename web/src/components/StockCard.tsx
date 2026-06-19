@@ -205,7 +205,7 @@ const StockCard: React.FC<StockCardProps> = ({
 
       // Capture the card as canvas
       const canvas = await html2canvas(cardRef.current, {
-        background: '#ffffff',
+        backgroundColor: '#ffffff',
         logging: false,
         useCORS: true,
       });

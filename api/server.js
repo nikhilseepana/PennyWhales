@@ -96,32 +96,58 @@ function readIndiaStocksState() {
   try {
     if (!fs.existsSync(INDIA_STOCKS_STATE_FILE)) {
       return {
-        symbols: [],
+        stocks: [],
         updatedAt: null,
       };
     }
 
     const raw = fs.readFileSync(INDIA_STOCKS_STATE_FILE, "utf8");
     const parsed = JSON.parse(raw);
+
+    // Handle old format (symbols array) - migrate to new format (stocks array with dates)
+    if (Array.isArray(parsed.symbols)) {
+      const now = new Date().toISOString();
+      const stocks = parsed.symbols.map((s) => ({
+        symbol: String(s).toUpperCase().trim(),
+        addedAt: parsed.updatedAt || now,
+      }));
+      return {
+        stocks,
+        updatedAt: parsed.updatedAt || now,
+      };
+    }
+
+    // New format (stocks array with dates)
+    const stocks = Array.isArray(parsed.stocks)
+      ? parsed.stocks.map((item) => ({
+          symbol: String(item.symbol || item).toUpperCase().trim(),
+          addedAt: item.addedAt || parsed.updatedAt || new Date().toISOString(),
+        }))
+      : [];
+
     return {
-      symbols: Array.isArray(parsed.symbols)
-        ? parsed.symbols.map((s) => String(s).toUpperCase().trim())
-        : [],
+      stocks,
       updatedAt: parsed.updatedAt || null,
     };
   } catch (error) {
     console.error("⚠️ Failed to read indiaStocks state:", error.message);
     return {
-      symbols: [],
+      stocks: [],
       updatedAt: null,
     };
   }
 }
 
-function writeIndiaStocksState(symbols) {
+function writeIndiaStocksState(stocks) {
   try {
     const payload = {
-      symbols,
+      stocks: Array.isArray(stocks)
+        ? stocks.map((item) => 
+            typeof item === 'string'
+              ? { symbol: String(item).toUpperCase().trim(), addedAt: new Date().toISOString() }
+              : { symbol: String(item.symbol || item).toUpperCase().trim(), addedAt: item.addedAt || new Date().toISOString() }
+          )
+        : [],
       updatedAt: new Date().toISOString(),
     };
     fs.writeFileSync(INDIA_STOCKS_STATE_FILE, JSON.stringify(payload, null, 2));
@@ -133,20 +159,21 @@ function writeIndiaStocksState(symbols) {
 function removeIndiaStockSymbol(symbol) {
   const normalizedSymbol = String(symbol || "").toUpperCase().trim();
   if (!normalizedSymbol) {
-    return { removed: false, symbols: readIndiaStocksState().symbols };
+    const state = readIndiaStocksState();
+    return { removed: false, stocks: state.stocks };
   }
 
   const currentState = readIndiaStocksState();
-  const nextSymbols = currentState.symbols.filter(
-    (item) => item !== normalizedSymbol
+  const nextStocks = currentState.stocks.filter(
+    (item) => item.symbol !== normalizedSymbol
   );
-  const removed = nextSymbols.length !== currentState.symbols.length;
+  const removed = nextStocks.length !== currentState.stocks.length;
 
   if (removed) {
-    writeIndiaStocksState(nextSymbols);
+    writeIndiaStocksState(nextStocks);
   }
 
-  return { removed, symbols: nextSymbols };
+  return { removed, stocks: nextStocks };
 }
 
 async function sendIndiaNewAdditionsTelegram(additions) {
@@ -181,19 +208,27 @@ async function refreshIndiaStocks({ sendAlerts = true } = {}) {
   );
 
   const previousState = readIndiaStocksState();
-  const previousSet = new Set(previousState.symbols);
+  const previousSymbolSet = new Set(previousState.stocks.map((s) => s.symbol));
   const currentSymbols = (chartinkData.symbols || []).map((s) =>
     String(s).toUpperCase().trim()
   );
-  const mergedSymbols = Array.from(
-    new Set([...previousState.symbols, ...currentSymbols])
-  );
-  const additions = currentSymbols.filter((symbol) => !previousSet.has(symbol));
-  const hasBaseline =
-    Array.isArray(previousState.symbols) && previousState.symbols.length > 0;
+
+  // Merge: keep existing stocks, add new symbols with current timestamp
+  const now = new Date().toISOString();
+  const mergedStocks = [...previousState.stocks];
+  const additions = [];
+
+  for (const symbol of currentSymbols) {
+    if (!previousSymbolSet.has(symbol)) {
+      mergedStocks.push({ symbol, addedAt: now });
+      additions.push(symbol);
+    }
+  }
+
+  const hasBaseline = previousState.stocks.length > 0;
 
   // Keep accumulating symbols in indiaStocks state (do not replace with only latest table set).
-  writeIndiaStocksState(mergedSymbols);
+  writeIndiaStocksState(mergedStocks);
 
   // Only alert for incremental additions after an initial baseline exists.
   if (sendAlerts && hasBaseline && additions.length > 0) {
@@ -212,12 +247,15 @@ async function refreshIndiaStocks({ sendAlerts = true } = {}) {
 
 function buildIndiaStocksCachedResponse() {
   const cached = readIndiaStocksState();
-  const hasCache = cached.symbols.length > 0;
+  const hasCache = cached.stocks.length > 0;
+  const symbols = cached.stocks.map((s) => s.symbol);
+  const stocksWithDates = cached.stocks;
 
   return {
     success: true,
-    symbols: cached.symbols,
-    count: cached.symbols.length,
+    symbols,
+    stocksWithDates,
+    count: cached.stocks.length,
     sourceUrl: getConfiguredChartinkScreenerUrl(),
     scrapedAt: cached.updatedAt || new Date().toISOString(),
     scrapeMode: hasCache ? "cached" : "cached-empty",
@@ -1037,8 +1075,9 @@ app.delete("/api/india-stocks/:symbol", (req, res) => {
     return res.json({
       success: true,
       message: `${symbol} removed from India symbols`,
-      symbols: result.symbols,
-      count: result.symbols.length,
+      symbols: result.stocks.map((s) => s.symbol),
+      stocksWithDates: result.stocks,
+      count: result.stocks.length,
     });
   } catch (error) {
     return res.status(500).json({
