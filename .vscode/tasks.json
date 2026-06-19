@@ -1,0 +1,42 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Mini Scan: US",
+      "type": "shell",
+      "command": "node miniScanAlert.js",
+      "options": {
+        "cwd": "${workspaceFolder}/api"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Mini Scan: India",
+      "type": "shell",
+      "command": "node miniScanAlert-india.js",
+      "options": {
+        "cwd": "${workspaceFolder}/api"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Mini Scan: Both",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Mini Scan: US",
+        "Mini Scan: India"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}
