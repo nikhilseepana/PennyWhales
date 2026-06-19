@@ -330,7 +330,7 @@ class StockScanner {
           timestamp: new Date().toISOString()
         };
 
-        await dbService.saveScanResults(results);
+        await dbService.saveScanResults(results, 'fullScan');
 
         // Remove only tickers with fire_level 0 (insufficient holdings, but data was fetchable)
         // Keep tickers with fire_level -1 or missing data (temporary issues)
@@ -345,18 +345,18 @@ class StockScanner {
         return;
       }
 
-      // Daily scan: merge with existing results and remove stocks that lost fire
-      const currentResults = await dbService.getScanResults();
+      // Daily scan: merge with existing dailyMini section and remove stocks that lost fire
+      const currentResults = await dbService.getScanResults('dailyMini');
 
       if (!currentResults || !currentResults.stocks) {
-        console.log('⚠️ No existing scan results found. Saving daily scan as new results.');
+        console.log('⚠️ No existing daily mini results found. Saving as new results.');
         let qualifyingStocks = stocks.filter(s => s.fire_level > 0);
 
         await dbService.saveScanResults({
           stocks: qualifyingStocks,
           summary: { total_processed: totalProcessed, qualifying_count: qualifyingStocks.length },
           timestamp: new Date().toISOString()
-        });
+        }, 'dailyMini');
         return;
       }
 
@@ -401,7 +401,7 @@ class StockScanner {
         timestamp: new Date().toISOString()
       };
 
-      await dbService.saveScanResults(results);
+      await dbService.saveScanResults(results, 'dailyMini');
 
       // Remove non-qualifying tickers from the tickers list
       if (removedTickers.length > 0) {

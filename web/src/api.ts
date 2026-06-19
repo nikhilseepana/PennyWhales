@@ -1,11 +1,27 @@
 import axios from 'axios';
 import { ScanResult, ScanStatus } from './types';
+import {
+  ghGetIndiaStocks,
+  ghGetLatestResults,
+  ghGetUSDailyMiniHistory,
+  ghGetWatchlists,
+  ghGetHoldings,
+  ghGetInstitutionalChanges,
+} from './githubDataApi';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:9001';
+const IS_GITHUB_PAGES = process.env.REACT_APP_GITHUB_PAGES === 'true';
+
+/** Stub for write operations that are unavailable on GitHub Pages */
+const readOnlyStub = (label: string) => async (..._args: any[]) => {
+  console.warn(`[GitHub Pages] "${label}" is read-only and not available.`);
+  return { success: false, message: 'Not available in read-only mode.' };
+};
 
 export interface IndiaStocksResponse {
   success: boolean;
   symbols: string[];
+  stocksWithDates?: Array<{ symbol: string; addedAt: string }>;
   count: number;
   sourceUrl: string;
   scrapedAt: string;
@@ -16,10 +32,36 @@ export interface IndiaStocksResponse {
   error?: string;
 }
 
+export interface IndiaScanStatus {
+  scanning: boolean;
+  mode: 'full' | 'mini' | null;
+  error: string | null;
+  last_scan: string | null;
+}
+
+export interface USDailyMiniHistoryEntry {
+  id: string;
+  timestamp: string;
+  scanDate: string;
+  sourceUrl: string | null;
+  totalMatched: number;
+  totalAfterRejectedFilter: number;
+  tickers: string[];
+  notes: string | null;
+}
+
+export type USScanType = 'full' | 'mini' | 'daily-mini';
+
 export const api = {
   // Start a new scan
-  startScan: async (isMini: boolean = false): Promise<{ success: boolean; message: string }> => {
-    const response = await axios.post(`${API_BASE}/api/scan/start`, { isMini });
+  startScan: async (
+    scanType: USScanType = 'full'
+  ): Promise<{ success: boolean; message: string }> => {
+    const isMini = scanType === 'mini' || scanType === 'daily-mini';
+    const response = await axios.post(`${API_BASE}/api/scan/start`, {
+      isMini,
+      scanType,
+    });
     return response.data;
   },
 
@@ -35,15 +77,49 @@ export const api = {
     return response.data;
   },
 
+  getUSDailyMiniHistory: async (
+    limit: number = 60
+  ): Promise<{ success: boolean; count: number; history: USDailyMiniHistoryEntry[] }> => {
+    if (IS_GITHUB_PAGES) return ghGetUSDailyMiniHistory(limit) as any;
+    const response = await axios.get(`${API_BASE}/api/us-daily-mini/history`, {
+      params: { limit },
+    });
+    return response.data;
+  },
+
   // India Stocks (Chartink)
   getIndiaStocks: async (refresh: boolean = false): Promise<IndiaStocksResponse> => {
+    if (IS_GITHUB_PAGES) return ghGetIndiaStocks();
     const response = await axios.get(`${API_BASE}/api/india-stocks`, {
       params: refresh ? { refresh: 1 } : undefined,
     });
     return response.data;
   },
 
-  // Get latest scan results
+  removeIndiaStock: IS_GITHUB_PAGES
+    ? readOnlyStub('removeIndiaStock') as any
+    : async (
+        symbol: string
+      ): Promise<{ success: boolean; message: string; symbols?: string[]; count?: number }> => {
+        const response = await axios.delete(
+          `${API_BASE}/api/india-stocks/${encodeURIComponent(symbol)}`
+        );
+        return response.data;
+      },
+
+  getIndiaScanStatus: async (): Promise<IndiaScanStatus> => {
+    const response = await axios.get(`${API_BASE}/api/india-scan/status`);
+    return response.data;
+  },
+
+  startIndiaScan: async (isMini: boolean = false): Promise<{ success: boolean; message: string; data?: IndiaStocksResponse }> => {
+    const response = await axios.post(`${API_BASE}/api/india-scan/start`, {
+      isMini,
+    });
+    return response.data;
+  },
+
+  // Get latest scan results (read from GitHub raw JSON on Pages)
   getLatestResults: async (
     page: number = 1,
     limit: number = 50,
@@ -65,6 +141,7 @@ export const api = {
     if (industries.length > 0) params.industries = industries.join(',');
     if (volumeFilter.length > 0) params.volumeFilter = volumeFilter.join(',');
     if (sortOrder.length > 0) params.sortOrder = sortOrder.join(',');
+    if (IS_GITHUB_PAGES) return ghGetLatestResults();
     const response = await axios.get(`${API_BASE}/api/scan/results`, { params });
     return response.data;
   },
@@ -114,6 +191,7 @@ export const api = {
 
   // Holdings Management
   getHoldings: async (): Promise<{ holdings: string[]; count: number }> => {
+    if (IS_GITHUB_PAGES) return ghGetHoldings();
     const response = await axios.get(`${API_BASE}/api/holdings`);
     return response.data;
   },
@@ -135,6 +213,7 @@ export const api = {
 
   // Watchlist Management
   getWatchlists: async (): Promise<{ watchlists: any[]; count: number }> => {
+    if (IS_GITHUB_PAGES) return ghGetWatchlists();
     const response = await axios.get(`${API_BASE}/api/watchlists`);
     return response.data;
   },

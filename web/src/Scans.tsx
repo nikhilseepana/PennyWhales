@@ -2,25 +2,74 @@ import React, { useState, useEffect } from "react";
 import api from "./api";
 import { ScanStatus } from "./types";
 import { theme } from "./theme";
+import { IndiaScanStatus, USScanType } from "./api";
 
 const Scans: React.FC = () => {
   const [scanStatus, setScanStatus] = useState<ScanStatus | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [indiaLoading, setIndiaLoading] = useState<boolean>(false);
+  const [indiaMiniLoading, setIndiaMiniLoading] = useState<boolean>(false);
+  const [indiaScanStatus, setIndiaScanStatus] = useState<IndiaScanStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [indiaError, setIndiaError] = useState<string | null>(null);
+  const [indiaCount, setIndiaCount] = useState<number>(0);
+  const [indiaUpdatedAt, setIndiaUpdatedAt] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   useEffect(() => {
     loadScanStatus();
+    loadIndiaStatus(false);
+    loadIndiaScanStatus();
 
     // Auto-refresh scan status every 2 seconds when scanning
     const interval = setInterval(() => {
       if (scanStatus?.scanning) {
         loadScanStatus();
       }
+      if (indiaScanStatus?.scanning) {
+        loadIndiaScanStatus();
+      }
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [scanStatus?.scanning]);
+  }, [scanStatus?.scanning, indiaScanStatus?.scanning]);
+
+  const loadIndiaScanStatus = async () => {
+    try {
+      const status = await api.getIndiaScanStatus();
+      setIndiaScanStatus(status);
+    } catch (err) {
+      console.error("Error loading India scan status:", err);
+    }
+  };
+
+  const loadIndiaStatus = async (refresh: boolean) => {
+    try {
+      setIndiaError(null);
+      if (refresh) {
+        setIndiaLoading(true);
+      }
+
+      const result = await api.getIndiaStocks(refresh);
+      if (!result.success) {
+        setIndiaError(result.error || "Failed to load India scans");
+        return;
+      }
+
+      setIndiaCount(result.count || 0);
+      setIndiaUpdatedAt(result.scrapedAt || null);
+      if (result.warning) {
+        setIndiaError(result.warning);
+      }
+    } catch (err) {
+      setIndiaError("Failed to load India scans");
+      console.error("Error loading India scan status:", err);
+    } finally {
+      if (refresh) {
+        setIndiaLoading(false);
+      }
+    }
+  };
 
   const loadScanStatus = async () => {
     try {
@@ -34,7 +83,7 @@ const Scans: React.FC = () => {
     }
   };
 
-  const handleStartScan = async (scanType: "full" | "mini") => {
+  const handleStartScan = async (scanType: USScanType) => {
     if (scanStatus?.scanning) {
       setError("A scan is already in progress");
       return;
@@ -44,7 +93,7 @@ const Scans: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const result = await api.startScan(scanType === "mini");
+      const result = await api.startScan(scanType);
 
       if (result.success) {
         // Immediately refresh status to show scanning state
@@ -57,6 +106,37 @@ const Scans: React.FC = () => {
       console.error(`Error starting ${scanType} scan:`, err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStartIndiaScan = async (scanType: "full" | "mini") => {
+    if (indiaScanStatus?.scanning) {
+      setIndiaError("India scan is already in progress");
+      return;
+    }
+
+    try {
+      setIndiaError(null);
+      if (scanType === "mini") {
+        setIndiaMiniLoading(true);
+      } else {
+        setIndiaLoading(true);
+      }
+
+      const result = await api.startIndiaScan(scanType === "mini");
+      if (!result.success) {
+        setIndiaError(result.message || `Failed to start India ${scanType} scan`);
+        return;
+      }
+
+      await loadIndiaScanStatus();
+      await loadIndiaStatus(true);
+    } catch (err) {
+      setIndiaError(`Failed to start India ${scanType} scan`);
+      console.error(`Error starting India ${scanType} scan:`, err);
+    } finally {
+      setIndiaLoading(false);
+      setIndiaMiniLoading(false);
     }
   };
 
@@ -151,6 +231,21 @@ const Scans: React.FC = () => {
             }}
           >
             {error}
+          </div>
+        )}
+
+        {indiaError && (
+          <div
+            style={{
+              padding: theme.spacing.md,
+              backgroundColor: "#fff3cd",
+              color: "#856404",
+              borderRadius: theme.borderRadius.md,
+              marginBottom: theme.spacing.lg,
+              border: "1px solid #ffeeba",
+            }}
+          >
+            {indiaError}
           </div>
         )}
 
@@ -363,11 +458,29 @@ const Scans: React.FC = () => {
         {/* Scan Actions */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            display: "flex",
+            flexDirection: "column",
             gap: theme.spacing.lg,
           }}
         >
+          <div>
+            <h2
+              style={{
+                margin: `0 0 ${theme.spacing.md} 0`,
+                fontSize: theme.typography.fontSize.lg,
+                fontWeight: theme.typography.fontWeight.semibold,
+                color: theme.ui.text.primary,
+              }}
+            >
+              🇺🇸 US Scans
+            </h2>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                gap: theme.spacing.lg,
+              }}
+            >
           {/* Full Scan Card */}
           <div
             style={{
@@ -604,6 +717,393 @@ const Scans: React.FC = () => {
                 ? "⏳ Scan in Progress..."
                 : "⚡ Start Mini Scan"}
             </button>
+          </div>
+
+          {/* Daily Mini Scan Card */}
+          <div
+            style={{
+              backgroundColor: theme.ui.surface,
+              borderRadius: theme.borderRadius.lg,
+              border: `1px solid ${theme.ui.border}`,
+              padding: theme.spacing.lg,
+              boxShadow: theme.ui.shadow.sm,
+              transition: `all ${theme.transition.normal}`,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: theme.spacing.md,
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              <span style={{ fontSize: "32px" }}>📈</span>
+              <div>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: theme.typography.fontSize.lg,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                    color: theme.ui.text.primary,
+                  }}
+                >
+                  Daily Mini Scan
+                </h3>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: theme.typography.fontSize.sm,
+                    color: theme.ui.text.secondary,
+                  }}
+                >
+                  Strong daily movers from custom Finviz filter
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: theme.ui.background,
+                borderRadius: theme.borderRadius.md,
+                padding: theme.spacing.md,
+                marginBottom: theme.spacing.md,
+                border: `1px solid ${theme.ui.border}`,
+              }}
+            >
+              <h4
+                style={{
+                  margin: `0 0 ${theme.spacing.sm} 0`,
+                  fontSize: theme.typography.fontSize.sm,
+                  fontWeight: theme.typography.fontWeight.semibold,
+                  color: theme.ui.text.primary,
+                }}
+              >
+                What this does:
+              </h4>
+              <ul
+                style={{
+                  margin: 0,
+                  paddingLeft: theme.spacing.md,
+                  fontSize: theme.typography.fontSize.sm,
+                  color: theme.ui.text.secondary,
+                  lineHeight: 1.4,
+                }}
+              >
+                <li>Uses your daily Finviz scan preset</li>
+                <li>Targets +10% daily momentum names</li>
+                <li>Focuses on stocks 50% below 52w high</li>
+                <li>Generates same stock data shape as other scans</li>
+                <li>Fast scan for daily opportunities</li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => handleStartScan("daily-mini")}
+              disabled={loading || scanStatus?.scanning}
+              style={{
+                width: "100%",
+                padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                borderRadius: theme.borderRadius.md,
+                backgroundColor: scanStatus?.scanning
+                  ? theme.ui.background
+                  : "#6f42c1",
+                color: scanStatus?.scanning ? theme.ui.text.secondary : "white",
+                cursor:
+                  loading || scanStatus?.scanning ? "not-allowed" : "pointer",
+                fontSize: theme.typography.fontSize.base,
+                fontWeight: theme.typography.fontWeight.semibold,
+                transition: `all ${theme.transition.normal}`,
+                opacity: loading || scanStatus?.scanning ? 0.6 : 1,
+                border: `1px solid ${
+                  scanStatus?.scanning ? theme.ui.border : "#6f42c1"
+                }`,
+              }}
+              onMouseEnter={(e) => {
+                if (!loading && !scanStatus?.scanning) {
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = theme.ui.shadow.md;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading && !scanStatus?.scanning) {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }
+              }}
+            >
+              {scanStatus?.scanning
+                ? "⏳ Scan in Progress..."
+                : "📈 Start Daily Mini"}
+            </button>
+          </div>
+            </div>
+          </div>
+
+          <div>
+            <h2
+              style={{
+                margin: `0 0 ${theme.spacing.md} 0`,
+                fontSize: theme.typography.fontSize.lg,
+                fontWeight: theme.typography.fontWeight.semibold,
+                color: theme.ui.text.primary,
+              }}
+            >
+              🇮🇳 India Scans
+            </h2>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                gap: theme.spacing.lg,
+              }}
+            >
+
+          {/* India Full Scan Card */}
+          <div
+            style={{
+              backgroundColor: theme.ui.surface,
+              borderRadius: theme.borderRadius.lg,
+              border: `1px solid ${theme.ui.border}`,
+              padding: theme.spacing.lg,
+              boxShadow: theme.ui.shadow.sm,
+              transition: `all ${theme.transition.normal}`,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: theme.spacing.md,
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              <span style={{ fontSize: "32px" }}>🇮🇳</span>
+              <div>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: theme.typography.fontSize.lg,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                    color: theme.ui.text.primary,
+                  }}
+                >
+                  India Full Scan
+                </h3>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: theme.typography.fontSize.sm,
+                    color: theme.ui.text.secondary,
+                  }}
+                >
+                  Refresh full symbols from your Chartink India screener
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: theme.ui.background,
+                borderRadius: theme.borderRadius.md,
+                padding: theme.spacing.md,
+                marginBottom: theme.spacing.md,
+                border: `1px solid ${theme.ui.border}`,
+              }}
+            >
+              <h4
+                style={{
+                  margin: `0 0 ${theme.spacing.sm} 0`,
+                  fontSize: theme.typography.fontSize.sm,
+                  fontWeight: theme.typography.fontWeight.semibold,
+                  color: theme.ui.text.primary,
+                }}
+              >
+                What this does:
+              </h4>
+              <ul
+                style={{
+                  margin: 0,
+                  paddingLeft: theme.spacing.md,
+                  fontSize: theme.typography.fontSize.sm,
+                  color: theme.ui.text.secondary,
+                  lineHeight: 1.4,
+                }}
+              >
+                <li>Refreshes India symbols from Chartink</li>
+                <li>Updates saved India symbols list</li>
+                <li>Tracks new additions against previous list</li>
+                <li>Current symbols: {indiaCount}</li>
+                <li>Last update: {formatDate(indiaUpdatedAt)}</li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => handleStartIndiaScan("full")}
+              disabled={indiaLoading || indiaMiniLoading || indiaScanStatus?.scanning}
+              style={{
+                width: "100%",
+                padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                borderRadius: theme.borderRadius.md,
+                backgroundColor: indiaLoading || indiaScanStatus?.scanning
+                  ? theme.ui.background
+                  : "#2e7d32",
+                color: indiaLoading || indiaScanStatus?.scanning
+                  ? theme.ui.text.secondary
+                  : "white",
+                cursor:
+                  indiaLoading || indiaMiniLoading || indiaScanStatus?.scanning
+                    ? "not-allowed"
+                    : "pointer",
+                fontSize: theme.typography.fontSize.base,
+                fontWeight: theme.typography.fontWeight.semibold,
+                transition: `all ${theme.transition.normal}`,
+                opacity: indiaLoading || indiaScanStatus?.scanning ? 0.6 : 1,
+                border: `1px solid ${
+                  indiaLoading || indiaScanStatus?.scanning
+                    ? theme.ui.border
+                    : "#2e7d32"
+                }`,
+              }}
+              onMouseEnter={(e) => {
+                if (!indiaLoading && !indiaMiniLoading && !indiaScanStatus?.scanning) {
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = theme.ui.shadow.md;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!indiaLoading && !indiaMiniLoading && !indiaScanStatus?.scanning) {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }
+              }}
+            >
+              {indiaLoading || indiaScanStatus?.mode === "full"
+                ? "⏳ Full Scan Running..."
+                : "🇮🇳 Start India Full Scan"}
+            </button>
+          </div>
+
+          {/* India Mini Scan Card */}
+          <div
+            style={{
+              backgroundColor: theme.ui.surface,
+              borderRadius: theme.borderRadius.lg,
+              border: `1px solid ${theme.ui.border}`,
+              padding: theme.spacing.lg,
+              boxShadow: theme.ui.shadow.sm,
+              transition: `all ${theme.transition.normal}`,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: theme.spacing.md,
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              <span style={{ fontSize: "32px" }}>🇮🇳</span>
+              <div>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: theme.typography.fontSize.lg,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                    color: theme.ui.text.primary,
+                  }}
+                >
+                  India Mini Scan
+                </h3>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: theme.typography.fontSize.sm,
+                    color: theme.ui.text.secondary,
+                  }}
+                >
+                  Run mini India scan and send Telegram summary lines
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: theme.ui.background,
+                borderRadius: theme.borderRadius.md,
+                padding: theme.spacing.md,
+                marginBottom: theme.spacing.md,
+                border: `1px solid ${theme.ui.border}`,
+              }}
+            >
+              <h4
+                style={{
+                  margin: `0 0 ${theme.spacing.sm} 0`,
+                  fontSize: theme.typography.fontSize.sm,
+                  fontWeight: theme.typography.fontWeight.semibold,
+                  color: theme.ui.text.primary,
+                }}
+              >
+                What this does:
+              </h4>
+              <ul
+                style={{
+                  margin: 0,
+                  paddingLeft: theme.spacing.md,
+                  fontSize: theme.typography.fontSize.sm,
+                  color: theme.ui.text.secondary,
+                  lineHeight: 1.4,
+                }}
+              >
+                <li>Runs the India mini scan script</li>
+                <li>Collects price lines from India symbols</li>
+                <li>Sends line-by-line Telegram updates</li>
+                <li>Good for quick daily India checks</li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => handleStartIndiaScan("mini")}
+              disabled={indiaLoading || indiaMiniLoading || indiaScanStatus?.scanning}
+              style={{
+                width: "100%",
+                padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                borderRadius: theme.borderRadius.md,
+                backgroundColor: indiaMiniLoading || indiaScanStatus?.scanning
+                  ? theme.ui.background
+                  : "#ff9800",
+                color: indiaMiniLoading || indiaScanStatus?.scanning
+                  ? theme.ui.text.secondary
+                  : "white",
+                cursor:
+                  indiaLoading || indiaMiniLoading || indiaScanStatus?.scanning
+                    ? "not-allowed"
+                    : "pointer",
+                fontSize: theme.typography.fontSize.base,
+                fontWeight: theme.typography.fontWeight.semibold,
+                transition: `all ${theme.transition.normal}`,
+                opacity: indiaMiniLoading || indiaScanStatus?.scanning ? 0.6 : 1,
+                border: `1px solid ${indiaMiniLoading || indiaScanStatus?.scanning ? theme.ui.border : "#ff9800"}`,
+              }}
+              onMouseEnter={(e) => {
+                if (!indiaLoading && !indiaMiniLoading && !indiaScanStatus?.scanning) {
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = theme.ui.shadow.md;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!indiaLoading && !indiaMiniLoading && !indiaScanStatus?.scanning) {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }
+              }}
+            >
+              {indiaMiniLoading || indiaScanStatus?.mode === "mini"
+                ? "⏳ Mini Scan Running..."
+                : "⚡ Start India Mini Scan"}
+            </button>
+          </div>
+            </div>
           </div>
         </div>
 

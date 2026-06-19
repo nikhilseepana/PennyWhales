@@ -10,7 +10,8 @@ const DB_FILES = {
   holdings: path.join(__dirname, 'data', 'holdings.json'),
   priceAlerts: path.join(__dirname, 'data', 'priceAlerts.json'),
   settings: path.join(__dirname, 'data', 'settings.json'),
-  institutionalChanges: path.join(__dirname, 'data', 'institutionalChanges.json')
+  institutionalChanges: path.join(__dirname, 'data', 'institutionalChanges.json'),
+  usDailyMiniHistory: path.join(__dirname, 'data', 'usDailyMiniHistory.json')
 };
 
 class DatabaseService {
@@ -43,20 +44,23 @@ class DatabaseService {
     const scanResultsAdapter = new JSONFile(DB_FILES.scanResults);
     this.dbs.scanResults = new Low(scanResultsAdapter, {});
     await this.dbs.scanResults.read();
-    this.dbs.scanResults.data = this.dbs.scanResults.data || {
-      stocks: [],
-      summary: {
-        total_processed: 0,
-        qualifying_count: 0,
-        high_tier: 0,
-        medium_tier: 0,
-        low_tier: 0,
-        under_dollar: 0,
-        premium_count: 0
-      },
-      timestamp: null,
-      new_stocks_only: false
-    };
+
+    // Migrate old flat format { stocks, summary } → sectioned format
+    const existingData = this.dbs.scanResults.data;
+    const emptySection = () => ({ stocks: [], summary: { total_processed: 0, qualifying_count: 0, total_scanned_stocks: 0 }, timestamp: null });
+    if (!existingData || (!existingData.fullScan && !existingData.miniScan && !existingData.dailyMini)) {
+      // Old flat format or empty — migrate
+      this.dbs.scanResults.data = {
+        fullScan: (existingData && existingData.stocks) ? existingData : emptySection(),
+        miniScan: emptySection(),
+        dailyMini: emptySection()
+      };
+    } else {
+      // Ensure all sections exist
+      this.dbs.scanResults.data.fullScan = this.dbs.scanResults.data.fullScan || emptySection();
+      this.dbs.scanResults.data.miniScan = this.dbs.scanResults.data.miniScan || emptySection();
+      this.dbs.scanResults.data.dailyMini = this.dbs.scanResults.data.dailyMini || emptySection();
+    }
     await this.dbs.scanResults.write();
 
     // Initialize watchlists database
@@ -104,6 +108,15 @@ class DatabaseService {
       sells: []
     };
     await this.dbs.institutionalChanges.write();
+
+    // Initialize US daily mini history database
+    const usDailyMiniHistoryAdapter = new JSONFile(DB_FILES.usDailyMiniHistory);
+    this.dbs.usDailyMiniHistory = new Low(usDailyMiniHistoryAdapter, {});
+    await this.dbs.usDailyMiniHistory.read();
+    this.dbs.usDailyMiniHistory.data = this.dbs.usDailyMiniHistory.data || {
+      entries: []
+    };
+    await this.dbs.usDailyMiniHistory.write();
 
     this.initialized = true;
     console.log('📊 Database initialized (multi-file mode)');
@@ -246,6 +259,55 @@ class DatabaseService {
     console.log('🗑️ Cleared rejected tickers');
   }
 
+  // US Daily Mini History Management
+  async addUsDailyMiniSnapshot(snapshot) {
+    await this.init();
+
+    if (!this.dbs.usDailyMiniHistory.data || !Array.isArray(this.dbs.usDailyMiniHistory.data.entries)) {
+      this.dbs.usDailyMiniHistory.data = { entries: [] };
+    }
+
+    const normalizedTickers = Array.from(
+      new Set(
+        (snapshot.tickers || [])
+          .map((ticker) => String(ticker || '').toUpperCase().trim())
+          .filter(Boolean)
+      )
+    );
+
+    const entry = {
+      id: `us_daily_mini_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      scanDate: snapshot.scanDate || new Date().toISOString().slice(0, 10),
+      sourceUrl: snapshot.sourceUrl || null,
+      totalMatched: normalizedTickers.length,
+      totalAfterRejectedFilter:
+        typeof snapshot.totalAfterRejectedFilter === 'number'
+          ? snapshot.totalAfterRejectedFilter
+          : normalizedTickers.length,
+      tickers: normalizedTickers,
+      notes: snapshot.notes || null,
+    };
+
+    this.dbs.usDailyMiniHistory.data.entries.push(entry);
+
+    // Keep only the latest 365 snapshots
+    if (this.dbs.usDailyMiniHistory.data.entries.length > 365) {
+      this.dbs.usDailyMiniHistory.data.entries = this.dbs.usDailyMiniHistory.data.entries.slice(-365);
+    }
+
+    await this.dbs.usDailyMiniHistory.write();
+    console.log(`🗂️ Saved US daily mini snapshot (${entry.totalMatched} tickers)`);
+    return entry;
+  }
+
+  async getUsDailyMiniHistory(limit = 60) {
+    await this.init();
+    const entries = this.dbs.usDailyMiniHistory.data?.entries || [];
+    const cappedLimit = Math.max(1, Math.min(Number(limit) || 60, 365));
+    return entries.slice(-cappedLimit).reverse();
+  }
+
   // Holdings Management
   async getHoldings() {
     await this.init();
@@ -288,7 +350,7 @@ class DatabaseService {
   }
 
   // Scan Results Management
-  async getScanResults() {
+  async getScanResults(scanType = 'fullScan') {
     await this.init();
 
     // Retry logic for read operations in case of temporary file system issues
@@ -296,32 +358,61 @@ class DatabaseService {
     while (retries > 0) {
       try {
         await this.dbs.scanResults.read();
-        return this.dbs.scanResults.data;
+        const data = this.dbs.scanResults.data;
+        // Return the requested section
+        return data[scanType] || { stocks: [], summary: {}, timestamp: null };
       } catch (error) {
         retries--;
         if (retries === 0) {
           console.error('Failed to read scan results after retries:', error.message);
-          // Return cached data if available
-          return this.dbs.scanResults.data || { stocks: [], summary: {}, timestamp: null };
+          return { stocks: [], summary: {}, timestamp: null };
         }
-        // Wait a bit before retrying
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
   }
 
+  async getAllScanResults() {
+    await this.init();
+    await this.dbs.scanResults.read();
+    return this.dbs.scanResults.data || {};
+  }
+
+  // Returns a deduplicated Map of ticker → stock, merging all scan sections.
+  // For duplicate tickers across sections, the highest fire_level wins.
+  async getAllStocksMap() {
+    const all = await this.getAllScanResults();
+    const map = new Map();
+    for (const section of ['fullScan', 'miniScan', 'dailyMini']) {
+      const stocks = all[section]?.stocks || [];
+      for (const stock of stocks) {
+        const existing = map.get(stock.ticker);
+        if (!existing || (stock.fire_level || 0) > (existing.fire_level || 0)) {
+          map.set(stock.ticker, stock);
+        }
+      }
+    }
+    return map;
+  }
+
   async getStockByTicker(ticker) {
     await this.init();
     const normalizedTicker = ticker.toUpperCase().trim();
-    const scanResults = await this.getScanResults();
-    return scanResults.stocks?.find(s => s.ticker === normalizedTicker) || null;
+    // Search across all scan sections
+    for (const scanType of ['fullScan', 'miniScan', 'dailyMini']) {
+      const section = await this.getScanResults(scanType);
+      const found = section.stocks?.find(s => s.ticker === normalizedTicker);
+      if (found) return found;
+    }
+    return null;
   }
 
-  async saveScanResults(results) {
+  async saveScanResults(results, scanType = 'fullScan') {
     await this.init();
 
-    // Get previous scan results to calculate changes
-    const previousResults = this.dbs.scanResults.data?.stocks || [];
+    // Get previous scan results for this section to calculate changes
+    const previousSection = this.dbs.scanResults.data?.[scanType] || {};
+    const previousResults = previousSection.stocks || [];
     const previousStocksMap = new Map(previousResults.map(s => [s.ticker, s]));
 
     // Use the stocks and summary as they come from the scanner
@@ -371,9 +462,9 @@ class DatabaseService {
       }
     });
 
-    // Save results with minimal processing
-    this.dbs.scanResults.data = {
-      ...results,
+    // Save results into the specific section only (never overwrite other sections)
+    if (!this.dbs.scanResults.data) this.dbs.scanResults.data = {};
+    this.dbs.scanResults.data[scanType] = {
       stocks: stocksWithChanges,
       summary: {
         ...results.summary,
@@ -401,22 +492,26 @@ class DatabaseService {
     }
   }
 
-  async clearScanResults() {
+  async clearScanResults(scanType = null) {
     await this.init();
+    const empty = () => ({ stocks: [], summary: { total_processed: 0, qualifying_count: 0, total_scanned_stocks: 0 }, timestamp: null });
 
-    // Clear scan results with minimal structure
-    this.dbs.scanResults.data = {
-      stocks: [],
-      summary: {
-        total_processed: 0,
-        qualifying_count: 0,
-        total_scanned_stocks: 0
-      },
-      timestamp: null
-    };
+    if (scanType) {
+      // Clear only the specified section
+      if (!this.dbs.scanResults.data) this.dbs.scanResults.data = {};
+      this.dbs.scanResults.data[scanType] = empty();
+      console.log(`🗑️ Cleared scan results section: ${scanType}`);
+    } else {
+      // Clear all sections
+      this.dbs.scanResults.data = {
+        fullScan: empty(),
+        miniScan: empty(),
+        dailyMini: empty()
+      };
+      console.log('🗑️ Cleared all scan results sections');
+    }
 
     await this.dbs.scanResults.write();
-    console.log('🗑️ Cleared scan results');
   }
 
   // Watchlist functions

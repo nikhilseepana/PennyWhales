@@ -1,0 +1,84 @@
+{
+  "entries": [
+    {
+      "id": "us_daily_mini_1781427701548",
+      "timestamp": "2026-06-14T09:01:41.548Z",
+      "scanDate": "2026-06-14",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover,sh_relvol_o3,ta_highlow52w_b50h,ta_perf_d10o&ft=4",
+      "totalMatched": 0,
+      "totalAfterRejectedFilter": 0,
+      "tickers": [],
+      "notes": "No tickers matched daily-mini screener"
+    },
+    {
+      "id": "us_daily_mini_1781431828384",
+      "timestamp": "2026-06-14T10:10:28.384Z",
+      "scanDate": "2026-06-14",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4",
+      "totalMatched": 3,
+      "totalAfterRejectedFilter": 3,
+      "tickers": [
+        "FWRD",
+        "RZLV",
+        "SMMT"
+      ],
+      "notes": "Daily-mini screener matches after rejected ticker filter"
+    },
+    {
+      "id": "us_daily_mini_1781433301115",
+      "timestamp": "2026-06-14T10:35:01.115Z",
+      "scanDate": "2026-06-14",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4",
+      "totalMatched": 3,
+      "totalAfterRejectedFilter": 3,
+      "tickers": [
+        "FWRD",
+        "RZLV",
+        "SMMT"
+      ],
+      "notes": "Daily-mini screener matches after rejected ticker filter"
+    },
+    {
+      "id": "us_daily_mini_1781456421821",
+      "timestamp": "2026-06-14T17:00:21.821Z",
+      "scanDate": "2026-06-14",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4",
+      "totalMatched": 3,
+      "totalAfterRejectedFilter": 3,
+      "tickers": [
+        "FWRD",
+        "RZLV",
+        "SMMT"
+      ],
+      "notes": "Daily-mini screener matches after rejected ticker filter"
+    },
+    {
+      "id": "us_daily_mini_1781456449184",
+      "timestamp": "2026-06-14T17:00:49.184Z",
+      "scanDate": "2026-06-14",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4",
+      "totalMatched": 3,
+      "totalAfterRejectedFilter": 3,
+      "tickers": [
+        "FWRD",
+        "RZLV",
+        "SMMT"
+      ],
+      "notes": "Daily-mini screener matches after rejected ticker filter"
+    },
+    {
+      "id": "us_daily_mini_1781459913591",
+      "timestamp": "2026-06-14T17:58:33.591Z",
+      "scanDate": "2026-06-14",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4",
+      "totalMatched": 3,
+      "totalAfterRejectedFilter": 3,
+      "tickers": [
+        "FWRD",
+        "RZLV",
+        "SMMT"
+      ],
+      "notes": "Daily-mini screener matches after rejected ticker filter"
+    }
+  ]
+}

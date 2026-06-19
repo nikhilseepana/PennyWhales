@@ -155,12 +155,17 @@ ${emoji} *${ticker}* has ${direction} your target!
       const results = await Promise.all(
         chatIds.map(async (singleChatId) => {
           try {
-            const response = await axios.post(`${this.baseUrl}/sendMessage`, {
+            const payload = {
               chat_id: singleChatId,
               text: message,
-              parse_mode: parseMode,
               disable_web_page_preview: true
-            });
+            };
+
+            if (parseMode) {
+              payload.parse_mode = parseMode;
+            }
+
+            const response = await axios.post(`${this.baseUrl}/sendMessage`, payload);
 
             console.log(`✅ Telegram message sent to ${singleChatId}: ${response.data.result.message_id}`);
             return {

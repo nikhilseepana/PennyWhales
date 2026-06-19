@@ -30,7 +30,7 @@ function shouldExcludeStock(stock) {
     industry.includes(k) || companyName.includes(k) || description.includes(k)
   );
 
-  return false;
+  return isExcluded;
 }
 
 module.exports = {

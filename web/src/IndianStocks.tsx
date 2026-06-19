@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import api from './api';
 import { theme } from './theme';
-import { Stock } from './types';
-import ChartView from './components/ChartView';
+import IndianStockCard from './components/IndianStockCard';
 
 const IndianStocks: React.FC = () => {
   const [displaySymbols, setDisplaySymbols] = useState<string[]>([]);
@@ -12,6 +11,7 @@ const IndianStocks: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [query, setQuery] = useState<string>('');
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   const loadIndiaStocks = async (refresh: boolean = false): Promise<void> => {
     try {
@@ -33,6 +33,7 @@ const IndianStocks: React.FC = () => {
 
       setNewAdditions(new Set(additions));
       setDisplaySymbols(mergedList);
+      setLastUpdated(result.scrapedAt || null);
 
       if (refresh) {
         if (additions.length > 0) {
@@ -63,26 +64,6 @@ const IndianStocks: React.FC = () => {
     return displaySymbols.filter((symbol) => symbol.includes(q));
   }, [displaySymbols, query]);
 
-  const stocksForCards = useMemo<Stock[]>(() => {
-    return filteredSymbols.map((symbol) => ({
-      ticker: symbol,
-      tradingview_symbol: `NSE:${symbol}`,
-      price: 0,
-      blackrock_pct: 0,
-      vanguard_pct: 0,
-      blackrock_source: 'chartink',
-      vanguard_source: 'chartink',
-      data_quality: 'symbol-only',
-      sources_count: 1,
-      discrepancy: false,
-      notes: newAdditions.has(symbol)
-        ? 'Chartink symbol-only stock (new addition)'
-        : 'Chartink symbol-only stock',
-      fire_level: newAdditions.has(symbol) ? 1 : 0,
-      company_name: symbol,
-    }));
-  }, [filteredSymbols, newAdditions]);
-
   const copySymbols = async (): Promise<void> => {
     if (!filteredSymbols.length) return;
     try {
@@ -92,15 +73,32 @@ const IndianStocks: React.FC = () => {
     }
   };
 
-  const stockDataMap = useMemo(() => {
-    const map = new Map<string, Stock>();
-    stocksForCards.forEach((stock) => map.set(stock.ticker, stock));
-    return map;
-  }, [stocksForCards]);
+  const handleDeleteIndiaSymbol = async (ticker: string): Promise<void> => {
+    try {
+      const response = await api.removeIndiaStock(ticker);
+      if (!response.success) {
+        setError(response.message || `Failed to remove ${ticker}`);
+        return;
+      }
+
+      setDisplaySymbols((prev) => prev.filter((symbol) => symbol !== ticker));
+      setNewAdditions((prev) => {
+        const next = new Set(prev);
+        next.delete(ticker);
+        return next;
+      });
+      setError(null);
+      setWarning(`${ticker} removed from India symbols`);
+    } catch (err) {
+      console.error('Failed to remove India symbol:', err);
+      setError(`Failed to remove ${ticker}`);
+    }
+  };
 
   const buildChartinkStockUrl = (ticker: string): string => {
-    const scanLink = 'scanlink:646e1e0ba5323d67803938a9e3b6d3af';
-    return `https://chartink.com/stocks-new?from_scan=1&scan_link=${encodeURIComponent(scanLink)}&symbol=${encodeURIComponent(ticker)}&timeframe=Daily`;
+    const scanLink = 'scanlink:bc07d725c8bc8b366132a7a19b3d84fb';
+    const navToken = '1781433224059_struqyex';
+    return `https://chartink.com/stocks-new?from_scan=1&scan_link=${encodeURIComponent(scanLink)}&symbol=${encodeURIComponent(ticker)}&timeframe=Daily&nav_token=${navToken}`;
   };
 
   return (
@@ -245,6 +243,11 @@ const IndianStocks: React.FC = () => {
             }}
           >
             {warning}
+            {lastUpdated && (
+              <div style={{ marginTop: theme.spacing.sm, fontSize: theme.typography.fontSize.sm }}>
+                Last updated: {new Date(lastUpdated).toLocaleString()}
+              </div>
+            )}
           </div>
         )}
 
@@ -258,6 +261,7 @@ const IndianStocks: React.FC = () => {
             padding: theme.spacing.md,
             flexGrow: 1,
             minHeight: 0,
+            overflowY: 'auto',
           }}
         >
           {!loading && !initialLoading && filteredSymbols.length === 0 ? (
@@ -288,18 +292,24 @@ const IndianStocks: React.FC = () => {
               </div>
             </div>
           ) : (
-            <ChartView
-              stocks={stocksForCards.map((stock) => stock.ticker)}
-              stockData={stockDataMap}
-              livePriceData={new Map()}
-              holdings={new Set()}
-              watchlistStocks={new Set()}
-              onToggleHolding={() => {}}
-              showWatchButton={false}
-              showDeleteButton={false}
-              showLastUpdated={false}
-              customChartUrlBuilder={buildChartinkStockUrl}
-            />
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: theme.spacing.md,
+                alignItems: 'stretch',
+              }}
+            >
+              {filteredSymbols.map((symbol) => (
+                <IndianStockCard
+                  key={symbol}
+                  symbol={symbol}
+                  isNew={newAdditions.has(symbol)}
+                  chartUrl={buildChartinkStockUrl(symbol)}
+                  onDelete={handleDeleteIndiaSymbol}
+                />
+              ))}
+            </div>
           )}
         </div>
       </div>

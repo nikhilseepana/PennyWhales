@@ -1,11 +1,9 @@
-name: Mini Scan Alert
+name: Mini Scan Alert - India Stocks
 
 on:
   schedule:
-    # 10:30 PM IST = 05:00 PM UTC, weekdays only
-    - cron: '0 17 * * 1-5'
-  
-  # Allow manual trigger from GitHub UI
+    # 2:30 PM IST = 09:00 AM UTC, weekdays only
+    - cron: '0 9 * * 1-5'
   workflow_dispatch:
 
 permissions:
@@ -14,27 +12,26 @@ permissions:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
-      - name: Setup Node.js
+
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'api/package-lock.json'
-      
+
       - name: Install dependencies
         working-directory: ./api
         run: npm install
-      
-      - name: Run Mini Scan Alert
+
+      - name: Run India Stock Mini Scan Alert
         working-directory: ./api
         env:
           PW_NOTIFY_KEY: ${{ secrets.PW_NOTIFY_KEY }}
-        run: node miniScanAlert.js
+          CHARTINK_SCAN_LINK: scanlink:bc07d725c8bc8b366132a7a19b3d84fb
+          CHARTINK_SCREENER_URL: https://chartink.com/screener/down-by-50-with-moment
+        run: node miniScanAlert-india.js
 
       - name: Persist data JSON changes
         if: always()
@@ -46,9 +43,13 @@ jobs:
             echo "No data changes to persist"
             exit 0
           fi
-          git commit -m "chore(data): persist US mini scan outputs"
+          git commit -m "chore(data): persist India mini scan outputs"
           git push origin HEAD:${{ github.ref_name }}
-      
-      - name: Log execution
+
+      - name: Upload scan logs
         if: always()
-        run: echo "Mini scan alert completed at $(date)"
+        uses: actions/upload-artifact@v4
+        with:
+          name: india-scan-logs
+          path: api/logs/
+          retention-days: 7

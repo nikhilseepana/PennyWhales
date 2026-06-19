@@ -2,6 +2,7 @@
   "name": "stock-scanner-dashboard",
   "version": "1.0.0",
   "private": true,
+  "homepage": "https://nikhilseepana.github.io/PennyWhales",
   "dependencies": {
     "@types/node": "^16.18.0",
     "@types/react": "^18.0.0",
@@ -22,7 +23,13 @@
     "start": "PORT=3000 react-scripts start",
     "build": "CI=false react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "devDependencies": {
+    "@types/html2canvas": "^0.5.35",
+    "gh-pages": "^6.3.0"
   },
   "eslintConfig": {
     "extends": [
@@ -42,8 +49,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:9001",
-  "devDependencies": {
-    "@types/html2canvas": "^0.5.35"
-  }
+  "proxy": "http://localhost:9001"
 }

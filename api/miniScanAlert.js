@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+require('dotenv').config();
+
 /**
  * Standalone Mini Scan Alert Script
  * Scans mini screener ($3 and under) for fire stocks under $1
@@ -15,6 +17,7 @@ const cheerio = require('cheerio');
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const dbService = require('./database');
 
 // ============= CONFIG =============
 // On GitHub: Prefer PW_NOTIFY_KEY secret name.
@@ -292,6 +295,45 @@ async function sendTelegramMessage(message) {
   }
 }
 
+function formatMoneyMB(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return 'n/a';
+  }
+
+  if (Math.abs(numeric) >= 1000) {
+    return `$${(numeric / 1000).toFixed(2)}B`;
+  }
+
+  return `$${numeric.toFixed(2)}M`;
+}
+
+async function appendFireStocksUnder1Watchlist(tickers) {
+  try {
+    const normalized = [...new Set(
+      (tickers || [])
+        .map((ticker) => String(ticker || '').toUpperCase().trim())
+        .filter(Boolean)
+    )];
+
+    if (normalized.length === 0) {
+      return;
+    }
+
+    const watchlists = await dbService.getWatchlists();
+    let watchlist = watchlists.find((w) => w.name === 'Fire Stocks Under $1');
+
+    if (!watchlist) {
+      watchlist = await dbService.createWatchlist('Fire Stocks Under $1', []);
+    }
+
+    const result = await dbService.addToWatchlist(watchlist.id, normalized);
+    console.log(`📋 Fire Stocks Under $1: added ${result.added}, total ${result.total}`);
+  } catch (error) {
+    console.error('⚠️ Failed to append Fire Stocks Under $1 watchlist:', error.message || error);
+  }
+}
+
 // ============= MAIN EXECUTION =============
 
 async function runMiniScanAlert() {
@@ -399,6 +441,8 @@ async function runMiniScanAlert() {
   
   if (fireStocksUnder1.length > 0) {
     console.log(`🔥 Found ${fireStocksUnder1.length} fire stocks under $1!\n`);
+
+    await appendFireStocksUnder1Watchlist(fireStocksUnder1.map((stock) => stock.ticker));
     
     // Sort by fire level (highest first), then by price (lowest first)
     fireStocksUnder1.sort((a, b) => {
@@ -406,25 +450,18 @@ async function runMiniScanAlert() {
       return a.price - b.price;
     });
 
-    let message = `🔥 MINI SCAN ALERT - FIRE STOCKS UNDER $1\n\n`;
-    message += `⏰ ${new Date().toLocaleString()}\n`;
-    message += `📊 Found ${fireStocksUnder1.length} stock(s):\n`;
-    message += `${'='.repeat(50)}\n\n`;
+    let message = `**Mini Scan - Fire Stocks Under $1**\n\n`;
+    message += `Found ${fireStocksUnder1.length} fire stock(s) under $1:\n\n`;
 
     fireStocksUnder1.forEach(stock => {
-      const fireEmoji = stock.fireLevel === 5 ? '🔴' : stock.fireLevel === 4 ? '🟠' : '🟡';
-      message += `${fireEmoji} ${stock.ticker} - Fire Level ${stock.fireLevel}\n`;
-      message += `   💵 Price: $${stock.price.toFixed(2)}\n`;
+      const fireEmojis = '🔥'.repeat(stock.fireLevel || 0);
+      const totalInstitutionalValue = (stock.blackrockValue || 0) + (stock.vanguardValue || 0);
       
-      // Show market values (most important) and percentages (if available)
-      const brDisplay = stock.blackrockValue > 0 ? `$${stock.blackrockValue}M` : `${stock.blackrockPct}%`;
-      const vgDisplay = stock.vanguardValue > 0 ? `$${stock.vanguardValue}M` : `${stock.vanguardPct}%`;
-      
-      message += `   📈 BR: ${brDisplay}`;
-      message += ` | VG: ${vgDisplay}\n\n`;
+      message += `${stock.ticker} | $${stock.price.toFixed(2)} | Fire ${stock.fireLevel} ${fireEmojis}\n`;
+      message += `   BR: ${stock.blackrockPct}% (${formatMoneyMB(stock.blackrockValue)}) | VG: ${stock.vanguardPct}% (${formatMoneyMB(stock.vanguardValue)})\n`;
+      message += `   BR+VG: ${formatMoneyMB(totalInstitutionalValue)}\n`;
+      message += `   Chart: https://www.tradingview.com/chart/?symbol=${stock.ticker}\n\n`;
     });
-    
-    message += `${'='.repeat(50)}\n✅ Mini Scan Complete`;
 
     await sendTelegramMessage(message);
   } else {
