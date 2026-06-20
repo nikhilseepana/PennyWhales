@@ -10,6 +10,7 @@ import Sectors from './Sectors';
 import InstitutionalChanges from './InstitutionalChanges';
 import IndianStocks from './IndianStocks';
 import Sidebar from './components/Sidebar';
+import PwaInstallButton from './components/PwaInstallButton';
 
 const AppContent: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -21,6 +22,7 @@ const AppContent: React.FC = () => {
           isDarkTheme={theme === 'dark'}
           onToggleTheme={toggleTheme}
         />
+        <PwaInstallButton />
         
         <div className="app-content">
           <main className="app-main">
