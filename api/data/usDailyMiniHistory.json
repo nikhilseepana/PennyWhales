@@ -79,6 +79,32 @@
         "SMMT"
       ],
       "notes": "Daily-mini screener matches after rejected ticker filter"
+    },
+    {
+      "id": "us_daily_mini_1781889983621",
+      "timestamp": "2026-06-19T17:26:23.621Z",
+      "scanDate": "2026-06-19",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4",
+      "totalMatched": 15,
+      "totalAfterRejectedFilter": 14,
+      "tickers": [
+        "ARQQ",
+        "BWIN",
+        "CAST",
+        "DFH",
+        "ENHA",
+        "FLO",
+        "FRMI",
+        "FVRR",
+        "LEU",
+        "MFI",
+        "NNE",
+        "QS",
+        "SMR",
+        "UXIN",
+        "ZBIO"
+      ],
+      "notes": "Daily-mini screener matches after rejected ticker filter"
     }
   ]
 }
