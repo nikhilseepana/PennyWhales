@@ -5,3 +5,7 @@ node_modules
 
 
 web/build
+
+mobile/ios
+mobile/android
+mobile/src/cfg/appdata.ts

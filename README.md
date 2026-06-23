@@ -133,6 +133,21 @@ npm run dev-web    # React only
 npm run test-scanner
 ```
 
+## Mobile App
+
+The React Native app in `mobile/` is GitHub-only for data.
+
+- It does not call your Node API server.
+- It reads the workflow-generated JSON files directly from `api/data/` on GitHub.
+- As long as your GitHub Actions keep updating those JSON files, the mobile app stays in sync without any backend server.
+- `npm run mobile-ios` and `npm run mobile-android` only need Metro for bundling during development; they do not require the API process.
+
+Current mobile data source:
+
+```text
+https://raw.githubusercontent.com/nikhilseepana/PennyWhales/main/api/data
+```
+
 ## Requirements
 
 - **Node.js 16+** (that's it!)

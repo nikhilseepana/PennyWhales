@@ -4,15 +4,13 @@
     "name": "Hot Picks",
     "stocks": [
       "ALIT",
-      "GERN",
       "BYND",
       "LAB",
       "QSI",
-      "IQ",
-      "MVST"
+      "IQ"
     ],
     "created": "2025-11-07T15:42:04.412Z",
-    "updated": "2026-06-14T17:35:02.188Z"
+    "updated": "2026-06-23T15:33:00.650Z"
   },
   {
     "id": "watchlist_1764608576236",
@@ -56,10 +54,11 @@
       "NNE",
       "DFH",
       "ZBIO",
-      "FLO"
+      "FLO",
+      "GETY"
     ],
     "created": "2026-06-14T17:58:44.042Z",
-    "updated": "2026-06-19T17:39:12.981Z"
+    "updated": "2026-06-23T10:35:12.511Z"
   },
   {
     "id": "watchlist_1781460014813",

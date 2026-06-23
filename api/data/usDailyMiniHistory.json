@@ -105,6 +105,71 @@
         "ZBIO"
       ],
       "notes": "Daily-mini screener matches after rejected ticker filter"
+    },
+    {
+      "id": "us_daily_mini_1782038100872",
+      "timestamp": "2026-06-21T10:35:00.872Z",
+      "scanDate": "2026-06-21",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4",
+      "totalMatched": 15,
+      "totalAfterRejectedFilter": 14,
+      "tickers": [
+        "ARQQ",
+        "BWIN",
+        "CAST",
+        "DFH",
+        "ENHA",
+        "FLO",
+        "FRMI",
+        "FVRR",
+        "LEU",
+        "MFI",
+        "NNE",
+        "QS",
+        "SMR",
+        "UXIN",
+        "ZBIO"
+      ],
+      "notes": "Daily-mini screener matches after rejected ticker filter"
+    },
+    {
+      "id": "us_daily_mini_1782124502488",
+      "timestamp": "2026-06-22T10:35:02.488Z",
+      "scanDate": "2026-06-22",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4",
+      "totalMatched": 15,
+      "totalAfterRejectedFilter": 14,
+      "tickers": [
+        "ARQQ",
+        "BWIN",
+        "CAST",
+        "DFH",
+        "ENHA",
+        "FLO",
+        "FRMI",
+        "FVRR",
+        "LEU",
+        "MFI",
+        "NNE",
+        "QS",
+        "SMR",
+        "UXIN",
+        "ZBIO"
+      ],
+      "notes": "Daily-mini screener matches after rejected ticker filter"
+    },
+    {
+      "id": "us_daily_mini_1782210901434",
+      "timestamp": "2026-06-23T10:35:01.434Z",
+      "scanDate": "2026-06-23",
+      "sourceUrl": "https://finviz.com/screener?v=411&f=cap_smallover%2Csh_relvol_o2%2Cta_highlow52w_b50h%2Cta_perf_d5o&ft=4",
+      "totalMatched": 2,
+      "totalAfterRejectedFilter": 2,
+      "tickers": [
+        "GETY",
+        "MLTX"
+      ],
+      "notes": "Daily-mini screener matches after rejected ticker filter"
     }
   ]
 }

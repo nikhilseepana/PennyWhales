@@ -234,7 +234,6 @@
     "RCKT",
     "USAS",
     "ARVN",
-    "HUMA",
     "GROY",
     "COUR",
     "TME",
@@ -358,7 +357,6 @@
     "PDYN",
     "TROX",
     "CWH",
-    "SRI",
     "ABAT",
     "ERII",
     "KOPN",
@@ -387,10 +385,7 @@
     "ENVX",
     "CERS",
     "SLDB",
-    "FF",
-    "III",
     "NKTX",
-    "ANGI",
     "AI",
     "LWLG",
     "ASPN",
@@ -427,18 +422,7 @@
     "LTBR",
     "NTSK",
     "NVAX",
-    "NXE",
-    "OLMA",
-    "OMER",
-    "ONDS",
-    "OWL",
-    "PCT",
-    "PONY",
-    "PSNL",
-    "QUBT",
-    "SMR",
-    "TE",
-    "VNET"
+    "NXE"
   ],
   "rejectedTickers": [
     {
@@ -1616,6 +1600,14 @@
     {
       "ticker": "SBSW",
       "rejectedAt": "2026-06-14T17:35:00.737Z"
+    },
+    {
+      "ticker": "MFIC",
+      "rejectedAt": "2026-06-21T22:14:27.713Z"
+    },
+    {
+      "ticker": "OBE",
+      "rejectedAt": "2026-06-21T22:14:27.713Z"
     }
   ]
 }
