@@ -1,173 +1,47 @@
 {
-  "stocks": [
-    {
-      "symbol": "BATAINDIA",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "PSB",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "TRENT",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "UCOBANK",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "SONATSOFTW",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "TTML",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "ZEEL",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "THOMASCOOK",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "NETWORK18",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "NEWGEN",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "RELAXO",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "ATGL",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "CAMPUS",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "SFL",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "SPARC",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "BALAMINES",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "COHANCE",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "TANLA",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "PNCINFRA",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "SWSOLAR",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "CYIENT",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "RPOWER",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "IBULLSLTD",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "PURVA",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "ADANIENSOL",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "ADANIGREEN",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "TITAGARH",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "HAPPSTMNDS",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "AWL",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "ABREL",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "MANYAVAR",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "ELECTCAST",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "SHAKTIPUMP",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "JWL",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "TEJASNET",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "JAIBALAJI",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "PRAJIND",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "STLTECH",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "HFCL",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "HCC",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "AARTIIND",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    },
-    {
-      "symbol": "ORCHPHARMA",
-      "addedAt": "2026-06-19T17:28:03.850Z"
-    }
+  "symbols": [
+    "COHANCE",
+    "BATAINDIA",
+    "PSB",
+    "TRENT",
+    "UCOBANK",
+    "SONATSOFTW",
+    "TTML",
+    "ZEEL",
+    "THOMASCOOK",
+    "NETWORK18",
+    "NEWGEN",
+    "RELAXO",
+    "ATGL",
+    "CAMPUS",
+    "SFL",
+    "SPARC",
+    "BALAMINES",
+    "TANLA",
+    "PNCINFRA",
+    "SWSOLAR",
+    "CYIENT",
+    "RPOWER",
+    "IBULLSLTD",
+    "PURVA",
+    "ADANIENSOL",
+    "ADANIGREEN",
+    "TITAGARH",
+    "HAPPSTMNDS",
+    "AWL",
+    "ABREL",
+    "MANYAVAR",
+    "ELECTCAST",
+    "SHAKTIPUMP",
+    "JWL",
+    "TEJASNET",
+    "JAIBALAJI",
+    "PRAJIND",
+    "STLTECH",
+    "HFCL",
+    "HCC",
+    "AARTIIND",
+    "ORCHPHARMA"
   ],
-  "updatedAt": "2026-06-23T10:19:51.677Z"
+  "updatedAt": "2026-06-24T10:09:41.002Z"
 }
