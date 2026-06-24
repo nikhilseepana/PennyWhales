@@ -55,10 +55,13 @@
       "DFH",
       "ZBIO",
       "FLO",
-      "GETY"
+      "GETY",
+      "COUR",
+      "PRIM",
+      "OPTU"
     ],
     "created": "2026-06-14T17:58:44.042Z",
-    "updated": "2026-06-23T10:35:12.511Z"
+    "updated": "2026-06-24T17:39:45.050Z"
   },
   {
     "id": "watchlist_1781460014813",
