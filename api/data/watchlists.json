@@ -58,10 +58,14 @@
       "GETY",
       "COUR",
       "PRIM",
-      "OPTU"
+      "OPTU",
+      "CHTR",
+      "LBRDA",
+      "MSTR",
+      "VOR"
     ],
     "created": "2026-06-14T17:58:44.042Z",
-    "updated": "2026-06-24T17:39:45.050Z"
+    "updated": "2026-06-29T17:52:38.539Z"
   },
   {
     "id": "watchlist_1781460014813",
