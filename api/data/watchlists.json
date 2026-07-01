@@ -63,10 +63,12 @@
       "LBRDA",
       "MSTR",
       "VOR",
-      "AVAV"
+      "AVAV",
+      "SOC",
+      "OPEN"
     ],
     "created": "2026-06-14T17:58:44.042Z",
-    "updated": "2026-06-30T17:37:34.574Z"
+    "updated": "2026-07-01T17:38:08.833Z"
   },
   {
     "id": "watchlist_1781460014813",
