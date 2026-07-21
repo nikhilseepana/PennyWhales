@@ -223,7 +223,8 @@ function extractCompanyName(html, ticker) {
  */
 function extractSector(html) {
   try {
-    const match = html.match(/<a[^>]*href="[^"]*f=sec_[^"]*"[^>]*class="tab-link"[^>]*>([^<]+)<\/a>/);
+    // Current Finviz structure: <a href="screener?v=111&f=sec_technology" class="quote-header_category">Technology</a>
+    const match = html.match(/<a[^>]*href="[^"]*f=sec_[^"]*"[^>]*>([^<]+)<\/a>/);
     return match ? match[1].trim() : null;
   } catch (error) {
     return null;
@@ -235,8 +236,13 @@ function extractSector(html) {
  */
 function extractIndustry(html) {
   try {
-    const match = html.match(/<a[^>]*href="[^"]*f=ind_[^"]*"[^>]*class="tab-link[^"]*"[^>]*>([^<]+)<\/a>/);
-    return match ? match[1].trim() : null;
+    // Current Finviz structure: <a href="screener?v=111&f=ind_..." class="quote-header_category" title="Consumer Electronics"><span ...>Consumer Electronics</span></a>
+    // Use title attribute as it's the most reliable
+    const titleMatch = html.match(/<a[^>]*href="[^"]*f=ind_[^"]*"[^>]*title="([^"]+)"/);
+    if (titleMatch) return titleMatch[1].trim();
+    // Fallback: try to get text directly or from span
+    const textMatch = html.match(/<a[^>]*href="[^"]*f=ind_[^"]*"[^>]*>(?:<span[^>]*>)?([^<]+)(?:<\/span>)?<\/a>/);
+    return textMatch ? textMatch[1].trim() : null;
   } catch (error) {
     return null;
   }
