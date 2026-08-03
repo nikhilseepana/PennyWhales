@@ -555,19 +555,26 @@ async function runMiniScanAlertIndia() {
   console.log(`\n✨ Analysis Complete!`);
   console.log(`📊 Analyzed: ${analyzed.length}`);
 
-  if (analyzed.length === 0) {
-    console.log('ℹ️ No stocks found in today\'s scan.');
-    return;
+  const prevSymbols = loadLastScanSymbols();
+  const newAdditions = analyzed.filter((s) => !prevSymbols.has(s.symbol));
+
+  // Save today's scan as the new baseline
+  saveLastScanSymbols(analyzed.map((s) => s.symbol));
+
+  console.log(`🆕 New additions: ${newAdditions.length} (prev scan had ${prevSymbols.size})`);
+
+  await appendIndiaDailyReviewWatchlist(newAdditions.map((s) => s.symbol));
+
+  let message = `🇮🇳 India Mini Scan\n⏰ ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n\n`;
+
+  if (newAdditions.length === 0) {
+    message += `✅ No new stocks today (${analyzed.length} in screener, none new)`;
+  } else {
+    const lines = newAdditions.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}\n${buildChartinkStockUrl(s.symbol)}`);
+    message += `🆕 ${lines.length} new stock(s):\n\n`;
+    message += lines.join('\n');
+    message += `\n\n🔗 ${getConfiguredChartinkScreenerUrls()}`;
   }
-
-  await appendIndiaDailyReviewWatchlist(analyzed.map((s) => s.symbol));
-
-  const lines = analyzed.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}\n${buildChartinkStockUrl(s.symbol)}`);
-  let message = `🇮🇳 India Mini Scan\n\n`;
-  message += `${lines.length} stock(s) found:\n\n`;
-  message += lines.join('\n');
-  message += `\n\n🔗 ${getConfiguredChartinkScreenerUrls()}`;
-  message += `\n⏰ ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
 
   await sendTelegramMessage(message);
 }
