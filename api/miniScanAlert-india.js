@@ -90,35 +90,28 @@ function saveLastScanSymbols(symbols) {
 function saveIndiaStocks(symbols) {
   try {
     const stocksPath = path.join(__dirname, 'data', 'indiaStocks.json');
-    const existingSymbols = (() => {
-      try {
-        if (!fs.existsSync(stocksPath)) {
-          return [];
-        }
-
-        const raw = fs.readFileSync(stocksPath, 'utf-8');
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed.symbols)) {
-          return [];
-        }
-
-        return parsed.symbols
-          .map((symbol) => String(symbol).toUpperCase().trim())
+    let existingData = {};
+    let existingSymbols = [];
+    try {
+      if (fs.existsSync(stocksPath)) {
+        existingData = JSON.parse(fs.readFileSync(stocksPath, 'utf-8'));
+        existingSymbols = (Array.isArray(existingData.symbols) ? existingData.symbols : [])
+          .map((s) => String(s).toUpperCase().trim())
           .filter(Boolean);
-      } catch (readError) {
-        return [];
       }
-    })();
+    } catch (readError) {
+      // start fresh if unreadable
+    }
 
     const incomingSymbols = (symbols || [])
       .map((symbol) => String(symbol).toUpperCase().trim())
       .filter(Boolean);
 
-    const mergedSymbols = Array.from(
-      new Set([...existingSymbols, ...incomingSymbols])
-    );
+    const mergedSymbols = Array.from(new Set([...existingSymbols, ...incomingSymbols]));
 
+    // Spread existingData first so lastScanSymbols / lastScanAt are preserved
     const payload = {
+      ...existingData,
       symbols: mergedSymbols,
       updatedAt: new Date().toISOString(),
     };
