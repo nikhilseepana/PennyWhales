@@ -23,16 +23,18 @@ const DEFAULT_CHARTINK_INDIA_SCREENER_URL =
 // ============= CONFIG =============
 const TELEGRAM_BOT_TOKEN = process.env.PW_NOTIFY_KEY || process.env.TELEGRAM_BOT_TOKEN;
 
-// Load chat ID from settings.json
-let TELEGRAM_CHAT_ID = null;
-try {
-  const settingsPath = path.join(__dirname, 'data', 'settings.json');
-  if (fs.existsSync(settingsPath)) {
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
-    TELEGRAM_CHAT_ID = settings.telegramChatId;
+// env var wins (CI), then indiaScanChatId, then default telegramChatId
+let TELEGRAM_CHAT_ID = process.env.INDIA_SCAN_CHAT_ID || null;
+if (!TELEGRAM_CHAT_ID) {
+  try {
+    const settingsPath = path.join(__dirname, 'data', 'settings.json');
+    if (fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+      TELEGRAM_CHAT_ID = settings.indiaScanChatId || settings.telegramChatId;
+    }
+  } catch (error) {
+    // Silently continue - will fail gracefully when trying to send
   }
-} catch (error) {
-  // Silently continue - will fail gracefully when trying to send
 }
 
 // Load Indian stocks list
