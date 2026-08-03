@@ -517,14 +517,8 @@ async function runMiniScanAlertIndia() {
 
       console.log(` ₹${price.toFixed(2)}`);
 
-      analyzed.push({
-        symbol,
-        price
-      });
-
-      scannedLines.push(
-        `[${i + 1}/${rowsToScan.length}] ${symbol}... ₹${price.toFixed(2)}\n${buildChartinkStockUrl(symbol)}`
-      );
+      analyzed.push({ symbol, price });
+      scannedLines.push(`${symbol} | ₹${price.toFixed(2)}`);
 
       // Rate limiting only when live prices are fetched one-by-one.
       if (row.close === null) {
@@ -545,10 +539,11 @@ async function runMiniScanAlertIndia() {
 
   await appendIndiaDailyReviewWatchlist(analyzed.map((item) => item.symbol));
 
-  let message = '📊 Indian Stock Mini Scan Alert\n\n';
-  message += `${scannedLines.length} scanned values:\n\n`;
+  let message = `🇮🇳 India Mini Scan\n\n`;
+  message += `${scannedLines.length} stock(s) found:\n\n`;
   message += scannedLines.join('\n');
-  message += `\n\n⏰ Scan: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+  message += `\n\n🔗 ${getConfiguredChartinkScreenerUrls()}`;
+  message += `\n⏰ ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
 
   await sendTelegramMessage(message);
 }
