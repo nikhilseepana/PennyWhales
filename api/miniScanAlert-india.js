@@ -562,7 +562,7 @@ async function runMiniScanAlertIndia() {
 
   await appendIndiaDailyReviewWatchlist(analyzed.map((s) => s.symbol));
 
-  const lines = analyzed.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}`);
+  const lines = analyzed.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}\n${buildChartinkStockUrl(s.symbol)}`);
   let message = `🇮🇳 India Mini Scan\n\n`;
   message += `${lines.length} stock(s) found:\n\n`;
   message += lines.join('\n');
