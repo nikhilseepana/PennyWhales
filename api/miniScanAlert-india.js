@@ -555,24 +555,16 @@ async function runMiniScanAlertIndia() {
   console.log(`\n✨ Analysis Complete!`);
   console.log(`📊 Analyzed: ${analyzed.length}`);
 
-  const prevSymbols = loadLastScanSymbols();
-  const newAdditions = analyzed.filter((s) => !prevSymbols.has(s.symbol));
-
-  // Persist current scan as the new baseline
-  saveLastScanSymbols(analyzed.map((s) => s.symbol));
-
-  console.log(`🆕 New additions: ${newAdditions.length} (prev scan had ${prevSymbols.size})`);
-
-  if (newAdditions.length === 0) {
-    console.log('ℹ️ No new additions since last scan — skipping notification.');
+  if (analyzed.length === 0) {
+    console.log('ℹ️ No stocks found in today\'s scan.');
     return;
   }
 
-  await appendIndiaDailyReviewWatchlist(newAdditions.map((s) => s.symbol));
+  await appendIndiaDailyReviewWatchlist(analyzed.map((s) => s.symbol));
 
-  const lines = newAdditions.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}`);
-  let message = `🇮🇳 India Mini Scan — New Additions\n\n`;
-  message += `${lines.length} new stock(s):\n\n`;
+  const lines = analyzed.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}`);
+  let message = `🇮🇳 India Mini Scan\n\n`;
+  message += `${lines.length} stock(s) found:\n\n`;
   message += lines.join('\n');
   message += `\n\n🔗 ${getConfiguredChartinkScreenerUrls()}`;
   message += `\n⏰ ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
