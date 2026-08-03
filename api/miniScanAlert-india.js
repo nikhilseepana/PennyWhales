@@ -64,6 +64,29 @@ function buildChartinkStockUrl(symbol) {
   return `https://chartink.com/stocks-new?from_scan=1&scan_link=${encodeURIComponent(scanLink)}&symbol=${encodeURIComponent(symbol)}&timeframe=daily`;
 }
 
+function loadLastScanSymbols() {
+  try {
+    const p = path.join(__dirname, 'data', 'indiaStocks.json');
+    if (!fs.existsSync(p)) return new Set();
+    const data = JSON.parse(fs.readFileSync(p, 'utf-8'));
+    return new Set((data.lastScanSymbols || []).map((s) => String(s).toUpperCase()));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveLastScanSymbols(symbols) {
+  try {
+    const p = path.join(__dirname, 'data', 'indiaStocks.json');
+    const data = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf-8')) : {};
+    data.lastScanSymbols = symbols.map((s) => String(s).toUpperCase());
+    data.lastScanAt = new Date().toISOString();
+    fs.writeFileSync(p, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error('⚠️ Failed to save lastScanSymbols:', error.message);
+  }
+}
+
 function saveIndiaStocks(symbols) {
   try {
     const stocksPath = path.join(__dirname, 'data', 'indiaStocks.json');
@@ -532,16 +555,25 @@ async function runMiniScanAlertIndia() {
   console.log(`\n✨ Analysis Complete!`);
   console.log(`📊 Analyzed: ${analyzed.length}`);
 
-  if (scannedLines.length === 0) {
-    console.log('ℹ️ No scanned values available to send.');
+  const prevSymbols = loadLastScanSymbols();
+  const newAdditions = analyzed.filter((s) => !prevSymbols.has(s.symbol));
+
+  // Persist current scan as the new baseline
+  saveLastScanSymbols(analyzed.map((s) => s.symbol));
+
+  console.log(`🆕 New additions: ${newAdditions.length} (prev scan had ${prevSymbols.size})`);
+
+  if (newAdditions.length === 0) {
+    console.log('ℹ️ No new additions since last scan — skipping notification.');
     return;
   }
 
-  await appendIndiaDailyReviewWatchlist(analyzed.map((item) => item.symbol));
+  await appendIndiaDailyReviewWatchlist(newAdditions.map((s) => s.symbol));
 
-  let message = `🇮🇳 India Mini Scan\n\n`;
-  message += `${scannedLines.length} stock(s) found:\n\n`;
-  message += scannedLines.join('\n');
+  const lines = newAdditions.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}`);
+  let message = `🇮🇳 India Mini Scan — New Additions\n\n`;
+  message += `${lines.length} new stock(s):\n\n`;
+  message += lines.join('\n');
   message += `\n\n🔗 ${getConfiguredChartinkScreenerUrls()}`;
   message += `\n⏰ ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
 
