@@ -55,13 +55,8 @@ function getConfiguredChartinkScreenerUrls() {
 }
 
 function buildChartinkStockUrl(symbol) {
-  const scanLink = String(process.env.CHARTINK_SCAN_LINK || '').trim();
-
-  if (!scanLink) {
-    return `https://chartink.com/stocks-new?from_scan=1&symbol=${encodeURIComponent(symbol)}&timeframe=daily`;
-  }
-
-  return `https://chartink.com/stocks-new?from_scan=1&scan_link=${encodeURIComponent(scanLink)}&symbol=${encodeURIComponent(symbol)}&timeframe=daily`;
+  const scanLink = String(process.env.CHARTINK_SCAN_LINK || 'scanlink:8816f4f438ed5b5c82a674abfdc4d930').trim();
+  return `https://chartink.com/stocks-new?from_scan=1&scan_link=${encodeURIComponent(scanLink)}&symbol=${encodeURIComponent(symbol)}&timeframe=Daily`;
 }
 
 function loadLastScanSymbols() {
@@ -556,18 +551,18 @@ async function runMiniScanAlertIndia() {
 
   console.log(`🆕 New additions: ${newAdditions.length} (prev scan had ${prevSymbols.size})`);
 
+  if (newAdditions.length === 0) {
+    console.log(`ℹ️ No new stocks today (${analyzed.length} in screener) — skipping notification.`);
+    return;
+  }
+
   await appendIndiaDailyReviewWatchlist(newAdditions.map((s) => s.symbol));
 
+  const lines = newAdditions.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}\n${buildChartinkStockUrl(s.symbol)}`);
   let message = `🇮🇳 India Mini Scan\n⏰ ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n\n`;
-
-  if (newAdditions.length === 0) {
-    message += `✅ No new stocks today (${analyzed.length} in screener, none new)`;
-  } else {
-    const lines = newAdditions.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}\n${buildChartinkStockUrl(s.symbol)}`);
-    message += `🆕 ${lines.length} new stock(s):\n\n`;
-    message += lines.join('\n');
-    message += `\n\n🔗 ${getConfiguredChartinkScreenerUrls()}`;
-  }
+  message += `🆕 ${lines.length} new stock(s):\n\n`;
+  message += lines.join('\n');
+  message += `\n\n🔗 ${getConfiguredChartinkScreenerUrls()}`;
 
   await sendTelegramMessage(message);
 }

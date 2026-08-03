@@ -454,14 +454,6 @@
   ],
   "rejectedTickers": [
     {
-      "ticker": "MFIC",
-      "rejectedAt": "2026-06-21T22:14:27.713Z"
-    },
-    {
-      "ticker": "OBE",
-      "rejectedAt": "2026-06-21T22:14:27.713Z"
-    },
-    {
       "ticker": "GROY",
       "rejectedAt": "2026-07-20T18:43:41.993Z"
     },

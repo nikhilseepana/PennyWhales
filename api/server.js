@@ -272,6 +272,64 @@ async function checkFireDrops(previousResults, newResults) {
 
 // API Routes
 
+// Start India mini scan
+app.post("/api/india-scan/start", (req, res) => {
+  const { spawn } = require("child_process");
+  const path = require("path");
+  const child = spawn("node", [path.join(__dirname, "miniScanAlert-india.js")], {
+    env: { ...process.env },
+    detached: true,
+    stdio: "ignore",
+  });
+  child.unref();
+  res.json({ success: true, message: "India scan started" });
+});
+
+app.get("/api/india-scan/status", (req, res) => {
+  res.json({ success: true, scanning: false, message: "India scan runs as background process" });
+});
+
+app.get("/api/india-stocks", async (req, res) => {
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const stocksPath = path.join(__dirname, "data", "indiaStocks.json");
+    const data = fs.existsSync(stocksPath)
+      ? JSON.parse(fs.readFileSync(stocksPath, "utf-8"))
+      : { symbols: [] };
+    const symbols = (data.symbols || []).map((s) => String(s).toUpperCase().trim()).filter(Boolean);
+    const lastScanSymbols = (data.lastScanSymbols || []).map((s) => String(s).toUpperCase().trim()).filter(Boolean);
+    res.json({
+      success: true,
+      symbols,
+      additions: lastScanSymbols,
+      additionsCount: lastScanSymbols.length,
+      count: symbols.length,
+      scrapedAt: data.lastScanAt || data.updatedAt || null,
+      sourceUrl: 'https://chartink.com/screener/down-by-50-with-moment',
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete("/api/india-stocks/:symbol", async (req, res) => {
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const symbol = String(req.params.symbol).toUpperCase().trim();
+    const stocksPath = path.join(__dirname, "data", "indiaStocks.json");
+    const data = fs.existsSync(stocksPath)
+      ? JSON.parse(fs.readFileSync(stocksPath, "utf-8"))
+      : { symbols: [] };
+    data.symbols = (data.symbols || []).filter((s) => s.toUpperCase() !== symbol);
+    fs.writeFileSync(stocksPath, JSON.stringify(data, null, 2));
+    res.json({ success: true, symbol, remaining: data.symbols.length });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Start scan
 app.post("/api/scan/start", async (req, res) => {
   if (scanState.scanning) {
