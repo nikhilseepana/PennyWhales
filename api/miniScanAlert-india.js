@@ -387,14 +387,32 @@ async function sendTelegramMessage(message) {
     }
 
     const baseUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+
+    // Split into ≤4096-char chunks on newline boundaries
+    const chunkMessage = (text) => {
+      const MAX = 4096;
+      if (text.length <= MAX) return [text];
+      const chunks = [];
+      let current = '';
+      for (const line of text.split('\n')) {
+        if (current.length + line.length + 1 > MAX) {
+          chunks.push(current);
+          current = line;
+        } else {
+          current += (current ? '\n' : '') + line;
+        }
+      }
+      if (current) chunks.push(current);
+      return chunks;
+    };
+
     const results = await Promise.all(
       chatIds.map(async (chatId) => {
         try {
           console.log(`📡 Sending to Telegram group/chat: ${chatId}...`);
-          await axios.post(`${baseUrl}/sendMessage`, {
-            chat_id: chatId,
-            text: message
-          });
+          for (const chunk of chunkMessage(message)) {
+            await axios.post(`${baseUrl}/sendMessage`, { chat_id: chatId, text: chunk });
+          }
           console.log(`✅ Telegram message sent to ${chatId}`);
           return { chatId, success: true };
         } catch (sendError) {
