@@ -20,6 +20,7 @@ interface ChartViewProps {
   showDeleteButton?: boolean;
   tradingViewChartUrl?: string;
   initialSelectedTicker?: string | null;
+  initialExchange?: 'default' | 'NASDAQ' | 'NYSE' | 'NSE';
   showLastUpdated?: boolean;
   onLoadMore?: () => void;
   hasMore?: boolean;
@@ -39,6 +40,7 @@ const ChartView: React.FC<ChartViewProps> = ({
   showWatchButton = true,
   showDeleteButton = false,
   initialSelectedTicker = null,
+  initialExchange = 'default',
   showLastUpdated = false,
   onLoadMore,
   hasMore = false,
@@ -48,7 +50,7 @@ const ChartView: React.FC<ChartViewProps> = ({
   const [selectedTicker, setSelectedTicker] = useState<string | null>(
     stocks.length > 0 ? stocks[0] : null
   );
-  const [exchange, setExchange] = useState<'default' | 'NASDAQ' | 'NYSE' | 'NSE'>('default');
+  const [exchange, setExchange] = useState<'default' | 'NASDAQ' | 'NYSE' | 'NSE'>(initialExchange);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Infinite scroll handler
@@ -460,6 +462,23 @@ const ChartView: React.FC<ChartViewProps> = ({
                         >
                           Open Chartink
                         </button>
+                        {selectedStock?.tradingview_symbol && (
+                          <button
+                            type="button"
+                            onClick={() => window.open(`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(selectedStock.tradingview_symbol!)}`, '_blank')}
+                            style={{
+                              padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+                              border: 'none',
+                              borderRadius: theme.borderRadius.md,
+                              backgroundColor: '#131722',
+                              color: 'white',
+                              fontWeight: theme.typography.fontWeight.bold,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            📈 TradingView
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
