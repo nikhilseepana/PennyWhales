@@ -55,31 +55,8 @@ function getConfiguredChartinkScreenerUrls() {
 }
 
 function buildChartinkStockUrl(symbol) {
-  const scanLink = String(process.env.CHARTINK_SCAN_LINK || 'scanlink:8816f4f438ed5b5c82a674abfdc4d930').trim();
-  return `https://chartink.com/stocks-new?from_scan=1&scan_link=${encodeURIComponent(scanLink)}&symbol=${encodeURIComponent(symbol)}&timeframe=Daily`;
-}
-
-function loadLastScanSymbols() {
-  try {
-    const p = path.join(__dirname, 'data', 'indiaStocks.json');
-    if (!fs.existsSync(p)) return new Set();
-    const data = JSON.parse(fs.readFileSync(p, 'utf-8'));
-    return new Set((data.lastScanSymbols || []).map((s) => String(s).toUpperCase()));
-  } catch {
-    return new Set();
-  }
-}
-
-function saveLastScanSymbols(symbols) {
-  try {
-    const p = path.join(__dirname, 'data', 'indiaStocks.json');
-    const data = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf-8')) : {};
-    data.lastScanSymbols = symbols.map((s) => String(s).toUpperCase());
-    data.lastScanAt = new Date().toISOString();
-    fs.writeFileSync(p, JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error('⚠️ Failed to save lastScanSymbols:', error.message);
-  }
+  const screenerUrl = getConfiguredChartinkScreenerUrls();
+  return `${screenerUrl}?symbol=${encodeURIComponent(symbol)}`;
 }
 
 function saveIndiaStocks(symbols) {
@@ -102,12 +79,10 @@ function saveIndiaStocks(symbols) {
       .map((symbol) => String(symbol).toUpperCase().trim())
       .filter(Boolean);
 
-    const mergedSymbols = Array.from(new Set([...existingSymbols, ...incomingSymbols]));
-
-    // Spread existingData first so lastScanSymbols / lastScanAt are preserved
+    // Replace (not merge) so stale accumulated symbols don't trigger false alerts on fallback
     const payload = {
       ...existingData,
-      symbols: mergedSymbols,
+      symbols: incomingSymbols,
       updatedAt: new Date().toISOString(),
     };
     fs.writeFileSync(stocksPath, JSON.stringify(payload, null, 2));
@@ -470,28 +445,17 @@ async function runMiniScanAlertIndia() {
       console.log(`✅ Refreshed India symbols from ${screenerUrl} (${symbolsFromTable.length})`);
       console.log(`📥 Loaded ${INDIA_STOCKS.length} symbols from Chartink Stocks table.`);
     } else {
-      const refreshed = await refreshIndiaStocksFromChartink();
-      if (refreshed.refreshed && refreshed.symbols.length > 0) {
-        INDIA_STOCKS = refreshed.symbols;
-        console.log(`📥 Loaded ${INDIA_STOCKS.length} symbols from Chartink screener.`);
-      }
+      // 0 rows = screener currently has no matches; don't fall back to backtest history
+      console.log('ℹ️ Chartink returned 0 stocks — screener may have no current matches.');
+      INDIA_STOCKS = [];
     }
   } catch (error) {
     console.error('⚠️ Failed reading Chartink Stocks table:', error.message || error);
-
-    try {
-      const refreshed = await refreshIndiaStocksFromChartink();
-      if (refreshed.refreshed && refreshed.symbols.length > 0) {
-        INDIA_STOCKS = refreshed.symbols;
-        console.log(`📥 Loaded ${INDIA_STOCKS.length} symbols from Chartink screener.`);
-      }
-    } catch (fallbackError) {
-      console.error('⚠️ Fallback screener refresh failed:', fallbackError.message || fallbackError);
-    }
+    INDIA_STOCKS = [];
   }
 
   if (INDIA_STOCKS.length === 0) {
-    console.log('⚠️ No Indian stocks loaded from indiaStocks.json');
+    console.log('⚠️ No Indian stocks loaded — Chartink scrape failed or returned 0 results. Exiting to avoid stale-data alerts.');
     return;
   }
 
@@ -543,24 +507,16 @@ async function runMiniScanAlertIndia() {
   console.log(`\n✨ Analysis Complete!`);
   console.log(`📊 Analyzed: ${analyzed.length}`);
 
-  const prevSymbols = loadLastScanSymbols();
-  const newAdditions = analyzed.filter((s) => !prevSymbols.has(s.symbol));
-
-  // Save today's scan as the new baseline
-  saveLastScanSymbols(analyzed.map((s) => s.symbol));
-
-  console.log(`🆕 New additions: ${newAdditions.length} (prev scan had ${prevSymbols.size})`);
-
-  if (newAdditions.length === 0) {
-    console.log(`ℹ️ No new stocks today (${analyzed.length} in screener) — skipping notification.`);
+  if (analyzed.length === 0) {
+    console.log(`ℹ️ No stocks in today's scan — skipping notification.`);
     return;
   }
 
-  await appendIndiaDailyReviewWatchlist(newAdditions.map((s) => s.symbol));
+  await appendIndiaDailyReviewWatchlist(analyzed.map((s) => s.symbol));
 
-  const lines = newAdditions.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}\n${buildChartinkStockUrl(s.symbol)}`);
+  const lines = analyzed.map((s) => `${s.symbol} | ₹${s.price.toFixed(2)}\n${buildChartinkStockUrl(s.symbol)}`);
   let message = `🇮🇳 India Mini Scan\n⏰ ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n\n`;
-  message += `🆕 ${lines.length} new stock(s):\n\n`;
+  message += `📋 ${lines.length} stock(s) in today's scan:\n\n`;
   message += lines.join('\n');
   message += `\n\n🔗 ${getConfiguredChartinkScreenerUrls()}`;
 
