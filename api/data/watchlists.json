@@ -114,10 +114,12 @@
       "WBTN",
       "AVXL",
       "GEMI",
-      "FINV"
+      "FINV",
+      "FRVO",
+      "LMB"
     ],
     "created": "2026-06-14T17:58:44.042Z",
-    "updated": "2026-08-31T21:44:04.187Z"
+    "updated": "2026-09-01T19:44:08.618Z"
   },
   {
     "id": "watchlist_1781460014813",
