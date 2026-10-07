@@ -140,10 +140,12 @@
       "QSI",
       "WOLF",
       "SGML",
-      "CBRS"
+      "CBRS",
+      "AVBP",
+      "DRUG"
     ],
     "created": "2026-06-14T17:58:44.042Z",
-    "updated": "2026-10-05T23:03:09.130Z"
+    "updated": "2026-10-07T21:45:33.561Z"
   },
   {
     "id": "watchlist_1781460014813",
