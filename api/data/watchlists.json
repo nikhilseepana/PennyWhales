@@ -142,10 +142,13 @@
       "SGML",
       "CBRS",
       "AVBP",
-      "DRUG"
+      "DRUG",
+      "LQDA",
+      "NTLA",
+      "CD"
     ],
     "created": "2026-06-14T17:58:44.042Z",
-    "updated": "2026-10-07T21:45:33.561Z"
+    "updated": "2026-10-08T21:49:25.174Z"
   },
   {
     "id": "watchlist_1781460014813",
